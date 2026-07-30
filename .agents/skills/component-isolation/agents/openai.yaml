@@ -1,0 +1,4 @@
+interface:
+  display_name: "Component Isolation"
+  short_description: "Refactor complex React component structures"
+  default_prompt: "Use $component-isolation to refactor this React component and remove prop drilling."

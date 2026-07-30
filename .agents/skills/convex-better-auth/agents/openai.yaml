@@ -1,0 +1,4 @@
+interface:
+  display_name: "Convex Better Auth"
+  short_description: "Build authenticated Convex functionality"
+  default_prompt: "Use $convex-better-auth to implement authenticated Convex functionality."
