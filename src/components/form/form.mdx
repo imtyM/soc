@@ -1,0 +1,666 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as FormExamples from "./form.stories";
+import * as InputStories from "./fields/input.stories";
+import * as CurrencyStories from "./fields/currency.stories";
+import * as SwitchStories from "./fields/switch.stories";
+import * as SubmitButtonStories from "./components/submit-button.stories";
+
+<Meta title="Form/Documentation" />
+
+# Form Composition API
+
+A type-safe, composable API for building forms with TanStack Form and shadcn/ui components.
+
+**Benefits:**
+- **Less verbose**: Pre-bound components reduce boilerplate
+- **Type-safe**: Full TypeScript inference from Zod schemas
+- **Consistent**: shadcn/ui components automatically integrated
+
+**Before (vanilla TanStack Form):**
+```tsx
+<form.Field name="email">
+  {(field) => (
+    <div>
+      <label htmlFor={field.name}>Email</label>
+      <input
+        id={field.name}
+        value={field.state.value}
+        onChange={(e) => field.handleChange(e.target.value)}
+      />
+      {field.state.meta.errors.map(err => <em key={err}>{err}</em>)}
+    </div>
+  )}
+</form.Field>
+```
+
+**After (Form Composition):**
+```tsx
+<form.AppField
+  name="email"
+  children={(field) => <field.FormInput label="Email" type="email" />}
+/>
+```
+
+---
+
+## Quick Start
+
+<Canvas of={FormExamples.BasicForm} />
+
+```tsx
+import { useAppForm } from "~/components/form";
+import z from "zod";
+
+const schema = z.object({
+  name: z.string().min(4, "Name must be at least 4 characters"),
+});
+
+const defaultValues: z.input<typeof schema> = { name: "" };
+
+function MyForm() {
+  const form = useAppForm({
+    defaultValues,
+    validators: { onChange: schema },
+    onSubmit: ({ value }) => console.log(value),
+  });
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>
+      <form.AppField
+        name="name"
+        children={(field) => <field.FormInput label="Name" />}
+      />
+      <form.AppForm>
+        <form.SubmitButton label="Submit" />
+      </form.AppForm>
+    </form>
+  );
+}
+```
+
+---
+
+## Core Concepts
+
+### Form Contexts
+
+Contexts enable components to access form state without prop drilling:
+
+```tsx
+const { fieldContext, formContext, useFieldContext, useFormContext } =
+  createFormHookContexts();
+```
+
+- **fieldContext**: Field-specific state (value, errors, handlers)
+- **formContext**: Form-level state (isSubmitting, isValid, etc.)
+
+### useAppForm Hook
+
+Custom hook with pre-bound components:
+
+```tsx
+const { useAppForm, withForm } = createFormHook({
+  fieldContext,
+  formContext,
+  fieldComponents: { FormInput, FormTextarea, ... },
+  formComponents: { SubmitButton, ... }
+});
+```
+
+Returns form instance with:
+- `form.AppField` - Renders fields with automatic context
+- `form.AppForm` - Wraps form-level components
+- All registered field/form components
+- All TanStack Form methods (handleSubmit, state, etc.)
+
+### form.AppField Pattern
+
+Access field components via children render function:
+
+```tsx
+<form.AppField
+  name="fieldName" // Type-safe field name
+  children={(field) => (
+    <field.FormInput label="Email" description="We'll never share" />
+  )}
+/>
+```
+
+### form.AppForm Pattern
+
+Wrap form-level components for state access:
+
+```tsx
+<form.AppForm>
+  <form.SubmitButton label="Submit" />
+  <form.FormErrors />
+</form.AppForm>
+```
+
+---
+
+## Field Components
+
+### Pattern Template
+
+Field components use `useFieldContext` to access state:
+
+```tsx
+import { useFieldContext } from "~/components/form";
+import { Field, FieldLabel, FieldError } from "~/components/ui/field";
+
+export function FormYourComponent({ label, ...props }) {
+  const field = useFieldContext<ValueType>();
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+
+  return (
+    <Field data-invalid={isInvalid}>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <YourUIComponent
+        id={field.name}
+        name={field.name}
+        value={field.state.value}
+        onChange={(value) => field.handleChange(value)}
+        onBlur={field.handleBlur}
+        aria-invalid={isInvalid}
+        {...props}
+      />
+      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+    </Field>
+  );
+}
+```
+
+### Available Fields
+
+<Canvas of={InputStories.WithValidation} />
+
+- **FormInput**: `label`, `type`, `placeholder`, `autoComplete`, `description`
+- **FormTextarea**: `label`, `rows`, `placeholder`, `description`
+- **FormNumber**: `label`, `prefix`, `suffix`, `min`, `max`, `step`
+- **FormSelect**: `label`, `options: SelectOption[]`
+- **FormCombobox**: `label`, `options: ComboboxOption[]`, `placeholder`
+- **FormCheckbox**: `label`, `description`
+- **FormRadioGroup**: `label`, `options: RadioOption[]`
+- **FormSwitch**: `label`, `description`
+- **CurrencyField**: type-safe `{ amount, currency }` group using `fields`
+
+<Canvas of={CurrencyStories.Default} />
+
+<Canvas of={SwitchStories.Default} />
+
+---
+
+## Form Components
+
+### Pattern Template
+
+Form components use `useFormContext` and subscribe to state:
+
+```tsx
+import { useFormContext } from "~/components/form";
+
+export function YourFormComponent({ label }) {
+  const form = useFormContext();
+
+  return (
+    <form.Subscribe selector={(state) => state.isSubmitting}>
+      {(isSubmitting) => (
+        <Button disabled={isSubmitting}>{label}</Button>
+      )}
+    </form.Subscribe>
+  );
+}
+```
+
+### Available Components
+
+<Canvas of={SubmitButtonStories.LoadingState} />
+
+- **SubmitButton**: `label`, `variant`, `size` - Auto-disables during submission
+- **FormErrors**: Displays form-level validation errors
+- **FormStateInspector**: Debug utility for Storybook
+
+---
+
+## Validation
+
+### Zod Schema Pattern
+
+<Canvas of={FormExamples.LoginForm} />
+
+```tsx
+import z from "zod";
+
+const schema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(8, "Must be 8+ characters"),
+});
+
+const defaultValues: z.input<typeof schema> = {
+  email: "",
+  password: "",
+};
+
+const form = useAppForm({
+  defaultValues,
+  validators: { onChange: schema }, // Validate on change
+});
+```
+
+### Validation Modes
+
+- **onChange**: Validates as user types - real-time feedback
+- **onBlur**: Validates on field blur - balanced UX/performance
+- **onSubmit**: Validates on submit only - for complex validations
+
+```tsx
+validators: {
+  onChange: schema,    // Real-time
+  onBlur: schema,      // On blur
+  onSubmit: schema,    // On submit
+}
+```
+
+### Cross-Field Validation
+
+Use Zod's `refine` for multi-field validation:
+
+```tsx
+const schema = z.object({
+  password: z.string().min(8),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"], // Error shows on this field
+});
+```
+
+### Async Validation
+
+For server-side checks:
+
+```tsx
+<form.AppField
+  name="username"
+  validators={{
+    onBlurAsync: async ({ value }) => {
+      const exists = await checkUsernameExists(value);
+      return exists ? "Username taken" : undefined;
+    },
+  }}
+  children={(field) => <field.FormInput label="Username" />}
+/>
+```
+
+---
+
+## Child Forms with withForm
+
+### Concept
+
+Child forms create reusable form components with pre-defined structure. Use for:
+- Repeated sections (addresses, contacts)
+- Reusable form modules
+- Encapsulated sub-forms with own logic
+
+### Pattern
+
+```tsx
+const ChildForm = withForm({
+  // Type-checking only (not used at runtime)
+  defaultValues: {
+    firstName: '',
+    lastName: ''
+  },
+  // Optional props with defaults
+  props: {
+    title: 'Name'
+  },
+  // Render function receives form + props
+  render: function Render({ form, title }) {
+    return (
+      <div>
+        <h3>{title}</h3>
+        <form.AppField
+          name="firstName"
+          children={(field) => <field.FormInput label="First Name" />}
+        />
+        <form.AppField
+          name="lastName"
+          children={(field) => <field.FormInput label="Last Name" />}
+        />
+      </div>
+    )
+  }
+})
+```
+
+### Example: Reusable Address Form
+
+```tsx
+import { withForm } from "~/components/form";
+
+const AddressForm = withForm({
+  defaultValues: {
+    street: '',
+    city: '',
+    zip: ''
+  },
+  props: {
+    title: 'Address',
+    required: false
+  },
+  render: function Render({ form, title, required }) {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-medium">{title}</h3>
+        <form.AppField
+          name="street"
+          children={(field) => (
+            <field.FormInput
+              label="Street"
+              placeholder="123 Main St"
+            />
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <form.AppField
+            name="city"
+            children={(field) => <field.FormInput label="City" />}
+          />
+          <form.AppField
+            name="zip"
+            children={(field) => <field.FormInput label="ZIP" />}
+          />
+        </div>
+      </div>
+    )
+  }
+})
+
+// Usage in parent form
+function ShippingForm() {
+  const form = useAppForm({
+    defaultValues: {
+      street: '',
+      city: '',
+      zip: ''
+    },
+    validators: { onChange: addressSchema }
+  })
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>
+      <AddressForm form={form} title="Shipping Address" />
+      <form.SubmitButton label="Continue" />
+    </form>
+  )
+}
+```
+
+### Props & Type Safety
+
+Props are type-checked and provide defaults:
+
+```tsx
+const MyForm = withForm({
+  defaultValues: { name: '' },
+  props: {
+    title: 'Default Title',    // Default value
+    showHelp: false,            // Default value
+  },
+  render: function Render({ form, title, showHelp }) {
+    // title and showHelp are typed and have defaults
+  }
+})
+
+// Usage - props are optional with defaults
+<MyForm form={form} />
+<MyForm form={form} title="Custom" showHelp={true} />
+```
+
+---
+
+## TypeScript & Optional Fields
+
+### z.input vs z.output
+
+```tsx
+const schema = z.object({
+  age: z.number().optional(),
+});
+
+// z.input: accepts undefined for optional fields (use for defaultValues)
+const defaultValues: z.input<typeof schema> = {
+  age: undefined // Valid
+};
+
+// z.output: what you get after validation
+type Output = z.output<typeof schema>; // { age?: number }
+```
+
+### Optional Fields Pattern
+
+```tsx
+const schema = z.object({
+  required: z.string().min(1),
+  optional: z.string().optional(),
+  optionalNumber: z.number().optional(),
+});
+
+const defaultValues: z.input<typeof schema> = {
+  required: "",
+  optional: undefined,
+  optionalNumber: undefined,
+};
+```
+
+---
+
+## Reactivity with useStore
+
+### useStore vs form.Subscribe
+
+**useStore** (recommended for most cases):
+```tsx
+import { useStore } from '@tanstack/react-store';
+
+const email = useStore(form.store, (state) => state.values.email);
+const isValid = useStore(form.store, (state) => state.isValid);
+```
+
+**form.Subscribe** (use in form components):
+```tsx
+<form.Subscribe selector={(state) => state.isSubmitting}>
+  {(isSubmitting) => <Button disabled={isSubmitting}>Submit</Button>}
+</form.Subscribe>
+```
+
+### Common Patterns
+
+**Conditional rendering:**
+```tsx
+const accountType = useStore(form.store, (state) => state.values.accountType);
+
+return (
+  <>
+    <form.AppField name="accountType" {...} />
+    {accountType === 'business' && <form.AppField name="companyName" {...} />}
+  </>
+);
+```
+
+**Watch multiple fields:**
+```tsx
+const formState = useStore(form.store, (state) => ({
+  isSubmitting: state.isSubmitting,
+  isValid: state.isValid,
+}));
+```
+
+**Side effects:**
+```tsx
+const password = useStore(form.store, (state) => state.values.password);
+
+React.useEffect(() => {
+  checkPasswordStrength(password);
+}, [password]);
+```
+
+---
+
+## Field Listeners
+
+### Event Types
+
+- **onChange**: Fired when field value changes
+- **onBlur**: Fired when field loses focus
+- **onMount**: Fired when field mounts
+- **onSubmit**: Fired on form submission
+
+### Basic Pattern
+
+```tsx
+<form.AppField
+  name="fieldName"
+  listeners={{
+    onChange: () => {
+      // React to field change
+    },
+  }}
+  children={(field) => <field.FormInput label="Field" />}
+/>
+```
+
+### Example: Auto-Generate Slug
+
+```tsx
+const generateSlug = () => {
+  const name = form.getFieldValue("name");
+  const category = form.getFieldValue("category");
+
+  return [category, name]
+    .filter(Boolean)
+    .join("-")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+};
+
+<form.AppField
+  name="name"
+  listeners={{ onChange: () => form.setFieldValue("slug", generateSlug()) }}
+  children={(field) => <field.FormInput label="Name" />}
+/>
+
+<form.AppField
+  name="slug"
+  children={(field) => <field.FormInput label="Slug" placeholder="Auto-generated" />}
+/>
+```
+
+### Debouncing
+
+```tsx
+<form.AppField
+  name="username"
+  listeners={{
+    onChangeDebounceMs: 500,
+    onChange: async () => await checkUsernameAvailability(),
+  }}
+  children={(field) => <field.FormInput label="Username" />}
+/>
+```
+
+---
+
+## Advanced Patterns
+
+### Linked Fields
+
+```tsx
+<form.AppField
+  name="endDate"
+  validators={{
+    onChange: ({ value, fieldApi }) => {
+      const startDate = fieldApi.form.getFieldValue('startDate');
+      return value < startDate ? 'End date must be after start date' : undefined;
+    }
+  }}
+  children={(field) => <field.FormInput label="End Date" type="date" />}
+/>
+```
+
+### Dynamic Visibility
+
+```tsx
+import { useStore } from '@tanstack/react-store';
+
+const accountType = useStore(form.store, (state) => state.values.accountType);
+
+return (
+  <>
+    <form.AppField name="accountType" {...} />
+    {accountType === 'business' && (
+      <form.AppField name="companyName" {...} />
+    )}
+  </>
+);
+```
+
+### Custom Error Messages
+
+```tsx
+const schema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Please enter a valid email" }),
+});
+```
+
+### State Persistence
+
+```tsx
+import { useStore } from '@tanstack/react-store';
+
+const defaultValues: z.input<typeof schema> = {
+  email: localStorage.getItem("email") || "",
+};
+
+const form = useAppForm({ defaultValues });
+
+const email = useStore(form.store, (state) => state.values.email);
+
+React.useEffect(() => {
+  localStorage.setItem("email", email);
+}, [email]);
+```
+
+---
+
+## Reference
+
+### Component Registry
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| **FormInput** | Text input | `label`, `type`, `placeholder` |
+| **FormTextarea** | Multi-line text | `label`, `rows` |
+| **FormNumber** | Numeric input | `label`, `prefix`, `suffix`, `min`, `max` |
+| **FormSelect** | Dropdown | `label`, `options` |
+| **FormCombobox** | Searchable dropdown | `label`, `options` |
+| **FormCheckbox** | Checkbox | `label` |
+| **FormRadioGroup** | Radio buttons | `label`, `options` |
+| **FormSwitch** | Toggle | `label`, `description` |
+| **CurrencyField** | Amount and currency group | `fields`, `label`, `currencyOptions` |
+| **SubmitButton** | Submit button | `label`, `variant` |
+| **FormErrors** | Error display | - |
+
+### External Documentation
+
+- [TanStack Form](https://tanstack.com/form/latest/docs/framework/react/guides/form-composition)
+- [shadcn/ui Forms](https://ui.shadcn.com/docs/forms/tanstack-form)
+- [Zod](https://zod.dev)
