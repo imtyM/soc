@@ -1,15 +1,26 @@
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
+import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
+	useRouteContext,
 } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import type * as React from "react";
+import { authClient } from "~/lib/auth-client";
+import { getToken } from "~/lib/auth-server";
 import appCss from "~/styles/app.css?url";
+
+const getAuthToken = createServerFn({ method: "GET" }).handler(
+	async () => await getToken(),
+);
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
+	convexQueryClient: ConvexQueryClient;
 }>()({
 	head: () => ({
 		meta: [
@@ -21,7 +32,7 @@ export const Route = createRootRouteWithContext<{
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "TanStack Start Starter",
+				title: "SOC",
 			},
 		],
 		links: [
@@ -43,19 +54,39 @@ export const Route = createRootRouteWithContext<{
 				sizes: "16x16",
 				href: "/favicon-16x16.png",
 			},
-			{ rel: "manifest", href: "/site.webmanifest", color: "#fffff" },
+			{ rel: "manifest", href: "/site.webmanifest", color: "#ffffff" },
 			{ rel: "icon", href: "/favicon.ico" },
 		],
 	}),
+	beforeLoad: async ({ context }) => {
+		const token = await getAuthToken();
+
+		if (token) {
+			context.convexQueryClient.serverHttpClient?.setAuth(token);
+		}
+
+		return {
+			isAuthenticated: Boolean(token),
+			token,
+		};
+	},
 	notFoundComponent: () => <div>Route not found</div>,
 	component: RootComponent,
 });
 
 function RootComponent() {
+	const context = useRouteContext({ from: Route.id });
+
 	return (
-		<RootDocument>
-			<Outlet />
-		</RootDocument>
+		<ConvexBetterAuthProvider
+			client={context.convexQueryClient.convexClient}
+			authClient={authClient}
+			initialToken={context.token}
+		>
+			<RootDocument>
+				<Outlet />
+			</RootDocument>
+		</ConvexBetterAuthProvider>
 	);
 }
 
