@@ -20,8 +20,9 @@ project.
 
 Before planning or implementing an issue:
 
-- Read the `Sea of change` team description and the complete selected issue,
-  including its project, resources, and linked context.
+- Read the `Sea of change` team description, the team-level `AGENTS.md`
+  document it references, and the complete selected issue, including its
+  project, resources, and linked context.
 - Confirm that the issue has exactly one execution-mode label. If the label is
   missing, ambiguous, or conflicts with the issue, stop and ask the developer.
 - Do not make code or repository documentation changes without a Linear issue,
