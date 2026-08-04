@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { PhoneAuth } from "~/components/auth/phone-auth";
+import { TodoList } from "~/components/todos/todo-list";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -24,7 +25,7 @@ function Home() {
 
 	return (
 		<main className="min-h-screen px-6 py-16">
-			<Card className="mx-auto max-w-xl">
+			<Card className="mx-auto max-w-2xl">
 				<CardHeader>
 					<CardTitle>
 						{isAuthenticated ? "You’re signed in" : "Phone sign in"}
@@ -44,11 +45,11 @@ function Home() {
 						<Suspense
 							fallback={
 								<p className="text-sm text-muted-foreground">
-									Loading your profile…
+									Loading your workspace…
 								</p>
 							}
 						>
-							<CurrentUser />
+							<AuthenticatedHome />
 						</Suspense>
 					) : (
 						<PhoneAuth />
@@ -86,6 +87,15 @@ function CurrentUser() {
 			{user?.phoneNumber ? (
 				<p className="text-sm text-muted-foreground">{user.phoneNumber}</p>
 			) : null}
+		</div>
+	);
+}
+
+function AuthenticatedHome() {
+	return (
+		<div className="flex flex-col gap-8">
+			<CurrentUser />
+			<TodoList />
 		</div>
 	);
 }
