@@ -12,6 +12,49 @@ Convex agent skills for common tasks can be installed by running
 
 <!-- convex-ai-end -->
 
+# Linear work and agent execution
+
+Linear is the source of truth for actionable work in this repository. The
+project is currently in the `Sea of change` team and the `Setup project` Linear
+project.
+
+Before planning or implementing an issue:
+
+- Read the `Sea of change` team description, the team-level `AGENTS.md`
+  document it references, and the complete selected issue, including its
+  project, resources, and linked context.
+- Confirm that the issue has exactly one execution-mode label. If the label is
+  missing, ambiguous, or conflicts with the issue, stop and ask the developer.
+- Do not make code or repository documentation changes without a Linear issue,
+  including small fixes and chores, unless the developer explicitly authorizes
+  an exception for that specific change.
+
+Every actionable issue must have exactly one of these mutually exclusive
+execution-mode labels:
+
+- `agent-ready`: The issue is fully specified. An unattended agent may
+  implement, verify, commit, push, and open a pull request without synchronous
+  developer input.
+- `agent-and-user`: The issue must be handled in an interactive local session.
+  Interview the developer, implement incrementally, and pause at material
+  decisions.
+- `user-only`: The issue requires a human-only action. An agent may research,
+  prepare instructions, or verify afterward, but must not execute the task
+  independently.
+
+For all code-capable work (`agent-ready` and `agent-and-user`):
+
+- Before editing files, create or switch to the issue's exact Linear-generated
+  `gitBranchName`.
+- Never invent, normalize, shorten, or substitute the branch name.
+- Never commit implementation work directly to the default branch.
+- Verify the work in proportion to its risk, commit it, push the Linear branch,
+  and open a pull request. Do not merge the pull request unless the developer
+  explicitly asks.
+
+If required Linear context is unavailable or contradicts repository guidance,
+stop and ask the developer before proceeding.
+
 # Project architecture and conventions
 
 ## General rules
