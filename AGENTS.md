@@ -77,6 +77,14 @@ stop and ask the developer before proceeding.
 - TanStack Form with Zod schemas for forms
 - Biome for formatting and linting
 
+## Local development ports
+
+- Run the SOC application on port 4317. Never start it on port 3000 or allow
+  Vite to choose a fallback port.
+- If port 4317 is occupied, report the conflict. Do not terminate an unrelated
+  process without explicit developer authorization.
+- Keep Storybook on port 6006.
+
 ## React component architecture
 
 - Keep components pure with minimal logic before their return statement (a
