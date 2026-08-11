@@ -95,6 +95,78 @@ For all code-capable work (`agent-implementer-ready`, `agent-owner-ready`, and
 If required Linear context is unavailable or contradicts repository guidance,
 stop and ask the developer before proceeding.
 
+# Context and scope
+
+- Linear owns current requirements, plans, decisions, progress, handoffs, and
+  other work-specific context. Repository documentation owns durable guidance
+  that must version with the code, including architecture, setup, conventions,
+  and operations. Do not create local planning or status files instead of
+  updating Linear.
+- If current Linear intent conflicts with repository documentation, follow
+  Linear for the current work intent, preserve repository safety constraints,
+  and surface the discrepancy. A durable convention discovered during work
+  requires an explicit issue change to `AGENTS.md` or the appropriate
+  repository documentation.
+- One Linear issue maps to one branch and normally one pull request. Do not
+  implement multiple actionable issues on one branch merely because they share
+  files.
+- Do not bundle unrelated cleanup, refactors, upgrades, or "while here"
+  changes. Make an adjacent change only when it directly enables the issue and
+  record it in the pull request. Create a linked follow-up issue for material
+  newly discovered work.
+
+# Safe implementation
+
+- Inspect the current branch and working tree before editing. Treat pre-existing
+  modifications and untracked files as developer-owned: never discard,
+  overwrite, reformat, stash, or commit them. Stop and ask if issue work
+  overlaps those changes.
+- Do not rewrite shared Git history or force-push without explicit authorization
+  for that action. Delete files only when the issue clearly requires removal.
+- Use npm and keep `package-lock.json` synchronized with package changes. Prefer
+  the existing stack, use project-local package runners, and add a dependency
+  in an `agent-implementer-ready` issue only when its specification explicitly
+  authorizes it. For `agent-owner-ready` work, dependency authority follows the
+  issue's documented authority boundary.
+- Update generated artifacts through their owning tools, review their diffs,
+  and commit only output caused by the issue.
+- Never expose secrets, tokens, OTPs, private user data, or full environment
+  values in chat, Linear, pull requests, commits, screenshots, or logs. Do not
+  read a secret merely to verify that it exists.
+- External writes must be explicitly authorized and limited to the named
+  target.
+
+# Evidence and handoff
+
+- Run focused checks while developing and every issue-required full check
+  before handoff. Never claim a check passed unless it was run successfully.
+- Do not weaken TypeScript, Biome, schemas, tests, accessibility, or security
+  controls merely to pass validation. Avoid blanket ignores, unsafe casts,
+  skipped tests, or reduced assertions unless the issue explicitly justifies
+  them.
+- Fix in-scope causes. Report pre-existing or out-of-scope failures with
+  evidence and linked follow-up work. A required failing or unrun check must
+  remain visible and prevents claiming full completion.
+- Use the pull-request template for detailed handoff evidence.
+
+# Resolving uncertainty
+
+Resolve uncertainty in this order:
+
+1. Read team guidance, the selected issue, dependencies, links, and project
+   context.
+2. Read root and applicable scoped `AGENTS.md` files.
+3. Inspect existing code, tests, stories, and nearby documentation.
+4. Use the repository skill matching the task.
+5. Check official documentation against installed versions when repository
+   evidence is insufficient.
+6. Ask the developer before introducing a genuinely new pattern.
+
+Prefer primary or official technical sources. Do not blindly port
+source-project code when SOC's current stack or conventions differ, and do not
+let generated examples, stale documentation, or training-memory patterns
+override repository guidance.
+
 # Project architecture and conventions
 
 ## General rules
