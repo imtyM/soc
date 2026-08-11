@@ -32,9 +32,18 @@ Before planning or implementing an issue:
 Every actionable issue must have exactly one of these mutually exclusive
 execution-mode labels:
 
-- `agent-ready`: The issue is fully specified. An unattended agent may
-  implement, verify, commit, push, and open a pull request without synchronous
-  developer input.
+- `agent-implementer-ready`: The issue is fully specified and bounded. Material
+  decisions are settled, and an unattended implementation agent may make only
+  ordinary mechanical choices while implementing, verifying, committing,
+  pushing, and opening a pull request. A blocking ambiguity requires
+  clarification or reclassification.
+- `agent-owner-ready`: The outcome, constraints, authority, and acceptance
+  criteria are clear, but the implementation approach may require autonomous
+  context gathering and bounded engineering judgment. The agent may make
+  reversible in-scope technical decisions, records material rationale, and
+  implements, verifies, commits, pushes, and opens a pull request. Material
+  ambiguity requires reclassification to `agent-and-user`; it must not be left
+  as a blocking pull-request question.
 - `agent-and-user`: The issue must be handled in an interactive local session.
   Interview the developer, implement incrementally, and pause at material
   decisions.
@@ -42,7 +51,19 @@ execution-mode labels:
   prepare instructions, or verify afterward, but must not execute the task
   independently.
 
-For all code-capable work (`agent-ready` and `agent-and-user`):
+Autonomous issue pickup follows these rules:
+
+- Unattended implementation runners may select only unblocked
+  `agent-implementer-ready` issues.
+- Autonomous owner agents may select only unblocked `agent-owner-ready` issues.
+- Neither autonomous mode may select `agent-and-user` or `user-only` issues.
+- Do not start an issue with no execution label, multiple execution labels,
+  unresolved blockers, or content that contradicts its label.
+- Both autonomous modes must read all required Linear, repository, skill, and
+  scoped instruction context before acting.
+
+For all code-capable work (`agent-implementer-ready`, `agent-owner-ready`, and
+`agent-and-user`):
 
 - Before editing files, create or switch to the issue's exact Linear-generated
   `gitBranchName`.
