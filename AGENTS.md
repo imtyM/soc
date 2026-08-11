@@ -12,6 +12,25 @@ Convex agent skills for common tasks can be installed by running
 
 <!-- convex-ai-end -->
 
+# Instruction sources
+
+Root `AGENTS.md` is the canonical repository instruction source. `CLAUDE.md`
+imports it for Claude Code; do not duplicate repository instructions there.
+
+Before planning or editing a path, check for more specific `AGENTS.md` files
+from the repository root down to that path. Apply the root instructions and
+every relevant scoped file. The closest scoped file may refine or override
+rules for its subtree. If instructions conflict ambiguously, stop and ask the
+developer. For example, work under `src/components/` must also follow
+`src/components/AGENTS.md`.
+
+The Convex-managed section belongs in root `AGENTS.md`. After running
+`npx convex ai-files install`, verify that `CLAUDE.md` still contains exactly
+`@AGENTS.md`; if the installer adds a managed Claude block, restore the import
+in the same issue and branch before committing. Do not remove or hand-edit
+`convex/_generated/ai/guidelines.md`, and do not manually fabricate Convex
+installer state.
+
 # Linear work and agent execution
 
 Linear is the source of truth for actionable work in this repository. The
