@@ -10,7 +10,6 @@
 
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
-import type * as myFunctions from "../myFunctions.js";
 import type * as schema_todo_validators from "../schema/todo_validators.js";
 import type * as todos from "../todos.js";
 
@@ -23,7 +22,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
-  myFunctions: typeof myFunctions;
   "schema/todo_validators": typeof schema_todo_validators;
   todos: typeof todos;
 }>;

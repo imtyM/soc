@@ -7,9 +7,6 @@ import { todoPriorityValidator } from "./schema/todo_validators";
 // app will continue to work.
 // The schema provides more precise TypeScript types.
 export default defineSchema({
-	numbers: defineTable({
-		value: v.number(),
-	}),
 	todos: defineTable({
 		userId: v.string(),
 		text: v.string(),
