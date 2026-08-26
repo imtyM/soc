@@ -189,6 +189,18 @@ override repository guidance.
 - TanStack Form with Zod schemas for forms
 - Biome for formatting and linting
 
+## Toolchain
+
+- `mise.toml` is the source of truth for exact project tool versions. Run
+  `mise install` after cloning or whenever it changes.
+- Keep ordinary npm scripts as the direct application command interface. npm
+  package binaries belong in `package.json` and `package-lock.json`; do not
+  duplicate them in mise.
+- Do not introduce another version-manager file. Never put credentials or
+  secret environment values in shared mise configuration.
+- Tool upgrades require a focused Linear issue, its exact branch, a deliberate
+  `mise.toml` edit, and the appropriate project verification.
+
 ## Local development ports
 
 - Run the SOC application on port 4317. Never start it on port 3000 or allow
