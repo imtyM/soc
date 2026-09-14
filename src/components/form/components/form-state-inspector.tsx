@@ -78,9 +78,16 @@ export function FormStateInspector({
 				<CardTitle className="text-sm">{title}</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<pre className="text-xs overflow-auto max-h-96 p-4 bg-muted rounded-md">
-					<code>{JSON.stringify(state, null, 2)}</code>
-				</pre>
+				<section
+					aria-label={title}
+					// biome-ignore lint/a11y/noNoninteractiveTabindex: This named scroll region needs keyboard focus so users can scroll the form state with arrow keys.
+					tabIndex={0}
+					className="text-xs overflow-auto max-h-96 p-4 bg-muted rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+				>
+					<pre>
+						<code>{JSON.stringify(state, null, 2)}</code>
+					</pre>
+				</section>
 			</CardContent>
 		</Card>
 	);
