@@ -261,6 +261,8 @@ const { data } = useSuspenseQuery(convexQuery(api.resource.list, {}));
   project.
 - Inspect the current project preset and installed components before adding
   anything.
+- For UI work, inspect relevant components and stories through the local
+  Storybook MCP when it is available.
 
 ## Linting and checking
 
