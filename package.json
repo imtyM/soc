@@ -39,6 +39,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.5",
+		"@edge-runtime/vm": "^5.0.0",
 		"@storybook/addon-a11y": "^10.6.0",
 		"@storybook/addon-docs": "^10.5.2",
 		"@storybook/addon-mcp": "^10.6.0",
@@ -50,6 +51,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.2",
 		"@vitest/browser-playwright": "latest",
+		"convex-test": "^0.0.58",
 		"playwright": "latest",
 		"storybook": "^10.5.2",
 		"tailwindcss": "^4.2.2",
