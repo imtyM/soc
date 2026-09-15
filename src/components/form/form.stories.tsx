@@ -1,6 +1,7 @@
 /* biome-ignore-all lint/correctness/noChildrenProp: TanStack Form uses a children render prop to preserve field type inference. */
 import type { Meta, StoryObj } from "@storybook/tanstack-react";
 import { useState } from "react";
+import { expect, userEvent } from "storybook/test";
 import z from "zod";
 import { FieldGroup } from "~/components/ui/field";
 import { FormStateInspector } from "./components/form-state-inspector";
@@ -144,15 +145,50 @@ export const LoginForm: Story = {
 					</FieldGroup>
 				</form>
 				{submittedValue && (
-					<div className="mt-4">
-						<div className="text-sm font-semibold mb-2">Submitted Value</div>
+					<section aria-labelledby="submitted-value-heading" className="mt-4">
+						<h3
+							id="submitted-value-heading"
+							className="text-sm font-semibold mb-2"
+						>
+							Submitted Value
+						</h3>
 						<pre className="text-xs overflow-auto max-h-96 p-4 bg-muted rounded-md">
 							<code>{JSON.stringify(submittedValue, null, 2)}</code>
 						</pre>
-					</div>
+					</section>
 				)}
 			</div>
 		);
+	},
+	play: async ({ canvas }) => {
+		const email = canvas.getByLabelText("Email");
+		const password = canvas.getByLabelText("Password");
+
+		await userEvent.type(email, "invalid-email");
+		await userEvent.tab();
+		await userEvent.type(password, "short");
+		await userEvent.tab();
+
+		await expect(
+			await canvas.findByText("Please enter a valid email address"),
+		).toBeVisible();
+		await expect(
+			await canvas.findByText("Password must be at least 8 characters"),
+		).toBeVisible();
+
+		await userEvent.clear(email);
+		await userEvent.type(email, "person@example.com");
+		await userEvent.tab();
+		await userEvent.clear(password);
+		await userEvent.type(password, "valid-password");
+		await userEvent.tab();
+		await userEvent.click(canvas.getByRole("button", { name: "Sign In" }));
+
+		const submittedResult = await canvas.findByRole("region", {
+			name: "Submitted Value",
+		});
+		await expect(submittedResult).toBeVisible();
+		await expect(submittedResult).toHaveTextContent("person@example.com");
 	},
 };
 

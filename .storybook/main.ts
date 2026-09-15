@@ -5,7 +5,12 @@ const config: StorybookConfig = {
 		"../src/**/*.mdx",
 		"../src/**/*.stories.@(ts|tsx)",
 	],
-	addons: ["@storybook/addon-docs", "@storybook/addon-mcp", "@storybook/addon-a11y"],
+	addons: [
+		"@storybook/addon-docs",
+		"@storybook/addon-mcp",
+		"@storybook/addon-a11y",
+		"@storybook/addon-vitest",
+	],
 	framework: {
 		name: "@storybook/tanstack-react",
 		options: {

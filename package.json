@@ -11,7 +11,8 @@
 		"storybook": "storybook dev -p 6006",
 		"format": "biome format --write .",
 		"lint": "tsc --noEmit && biome lint .",
-		"check": "tsc --noEmit && biome check ."
+		"check": "tsc --noEmit && biome check .",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
@@ -41,16 +42,20 @@
 		"@storybook/addon-a11y": "^10.6.0",
 		"@storybook/addon-docs": "^10.5.2",
 		"@storybook/addon-mcp": "^10.6.0",
+		"@storybook/addon-vitest": "^10.6.0",
 		"@storybook/tanstack-react": "^10.5.2",
 		"@tailwindcss/vite": "^4.2.2",
 		"@types/node": "^22.20.1",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.2",
+		"@vitest/browser-playwright": "latest",
+		"playwright": "latest",
 		"storybook": "^10.5.2",
 		"tailwindcss": "^4.2.2",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.9",
-		"vite-tsconfig-paths": "^6.1.1"
+		"vite-tsconfig-paths": "^6.1.1",
+		"vitest": "latest"
 	}
 }
