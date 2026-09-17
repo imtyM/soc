@@ -27,6 +27,15 @@ export default mergeConfig(
 						},
 					},
 				},
+				{
+					extends: true,
+					test: {
+						name: "convex",
+						include: ["convex/**/*.test.ts"],
+						environment: "edge-runtime",
+						browser: { enabled: false },
+					},
+				},
 			],
 		},
 	}),
