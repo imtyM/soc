@@ -97,9 +97,10 @@ stop and ask the developer before proceeding.
 
 # Context and scope
 
-- Linear owns current requirements, plans, decisions, progress, handoffs, and
-  other work-specific context. Repository documentation owns durable guidance
-  that must version with the code, including architecture, setup, conventions,
+- Linear owns product intent, current requirements, plans, active decisions,
+  progress, handoffs, and other work-specific context. Repository documentation
+  owns durable guidance that must version with the code, including architecture,
+  setup, conventions,
   and operations. Do not create local planning or status files instead of
   updating Linear.
 - If current Linear intent conflicts with repository documentation, follow
@@ -114,6 +115,27 @@ stop and ask the developer before proceeding.
   changes. Make an adjacent change only when it directly enables the issue and
   record it in the pull request. Create a linked follow-up issue for material
   newly discovered work.
+
+## Documentation ownership
+
+Apply the Linear/repository boundary above as follows:
+
+- Root and scoped `AGENTS.md` files own durable development rules and
+  guardrails. The root README owns human onboarding and a concise map to deeper
+  sources of truth.
+- Storybook stories and MDX own visual, state-based, and interactive component
+  examples; do not duplicate them in README files.
+- Add a package- or subsystem-local README only when a reusable API or
+  non-obvious durable workflow needs guidance that must version with the code.
+- Ordinary product features rely on their Linear issue, implementation, tests,
+  and applicable stories. They do not require a README or standalone feature
+  document by default.
+- Keep durable operational procedures in the repository when they must remain
+  synchronized with the code.
+- Link to an existing source of truth instead of copying it. When uncertain,
+  keep current or work-specific context in Linear and only repository-bound,
+  durable truth beside the code. Discuss a genuinely new documentation
+  structure with the developer before creating it.
 
 # Safe implementation
 
