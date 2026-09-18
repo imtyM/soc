@@ -36,6 +36,15 @@ export default mergeConfig(
 						browser: { enabled: false },
 					},
 				},
+				{
+					extends: true,
+					test: {
+						name: "unit",
+						include: ["src/**/*.test.{ts,tsx}"],
+						environment: "node",
+						browser: { enabled: false },
+					},
+				},
 			],
 		},
 	}),
