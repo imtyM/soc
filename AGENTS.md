@@ -158,6 +158,21 @@ Apply the Linear/repository boundary above as follows:
 - External writes must be explicitly authorized and limited to the named
   target.
 
+## Error handling and logging
+
+- Expected application errors are stable, typed, safe to display, and owned by
+  the resource that defines them. Keep validation failures and deliberate UI
+  states out of unexpected-error boundaries.
+- Keep unexpected errors generic for users. Never render or log raw errors,
+  secrets, credentials, private data, or other sensitive technical detail.
+- Do not catch an error merely to log and rethrow it. Add only bounded,
+  non-sensitive context when an integration boundary or intentionally handled
+  failure would otherwise disappear.
+- Reuse the shared client public-error normalizer and unexpected-error recovery
+  UI instead of creating feature-local alternatives.
+- Hosted observability is deferred to a dedicated PostHog issue; do not add a
+  telemetry abstraction prematurely.
+
 # Evidence and handoff
 
 - Run focused checks while developing and every issue-required full check
