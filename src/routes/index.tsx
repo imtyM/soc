@@ -1,7 +1,7 @@
 import { convexQuery, useConvexAuth } from "@convex-dev/react-query";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { PhoneAuth } from "~/components/auth/phone-auth";
 import { TodoList } from "~/components/todos/todo-list";
 import { Button } from "~/components/ui/button";
@@ -14,6 +14,7 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { authClient } from "~/lib/auth-client";
+import { getPublicErrorMessage } from "~/lib/public-error";
 import { api } from "../../convex/_generated/api";
 
 export const Route = createFileRoute("/")({
@@ -22,22 +23,33 @@ export const Route = createFileRoute("/")({
 
 function Home() {
 	const { isAuthenticated, isLoading } = useConvexAuth();
+	const { signingOut, signOutError, handleSignOut } = useSignOut();
 
 	return (
 		<main className="min-h-screen px-6 py-16">
 			<Card className="mx-auto max-w-2xl">
 				<CardHeader>
 					<CardTitle>
-						{isAuthenticated ? "You’re signed in" : "Phone sign in"}
+						{signingOut
+							? "Signing out"
+							: isAuthenticated
+								? "You’re signed in"
+								: "Phone sign in"}
 					</CardTitle>
 					<CardDescription>
-						{isAuthenticated
-							? "Your Better Auth session has been validated by Convex."
-							: "Generate an OTP, then retrieve it from the Convex function logs."}
+						{signingOut
+							? "Your authenticated workspace is closing safely."
+							: isAuthenticated
+								? "Your Better Auth session has been validated by Convex."
+								: "Generate an OTP, then retrieve it from the Convex function logs."}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{isLoading ? (
+					{signingOut ? (
+						<output className="text-sm text-muted-foreground">
+							Signing out…
+						</output>
+					) : isLoading ? (
 						<p className="text-sm text-muted-foreground">
 							Validating your session…
 						</p>
@@ -55,18 +67,14 @@ function Home() {
 						<PhoneAuth />
 					)}
 				</CardContent>
-				{isAuthenticated ? (
-					<CardFooter>
-						<Button
-							variant="outline"
-							onClick={() => {
-								void authClient.signOut({
-									fetchOptions: {
-										onSuccess: () => window.location.reload(),
-									},
-								});
-							}}
-						>
+				{isAuthenticated && !signingOut ? (
+					<CardFooter className="flex-col items-start gap-3">
+						{signOutError ? (
+							<p role="alert" className="text-sm text-destructive">
+								{signOutError}
+							</p>
+						) : null}
+						<Button variant="outline" onClick={handleSignOut}>
 							Sign out
 						</Button>
 					</CardFooter>
@@ -98,4 +106,30 @@ function AuthenticatedHome() {
 			<TodoList />
 		</div>
 	);
+}
+
+function useSignOut() {
+	const [signingOut, setSigningOut] = useState(false);
+	const [signOutError, setSignOutError] = useState<string | null>(null);
+
+	async function handleSignOut() {
+		setSignOutError(null);
+		setSigningOut(true);
+
+		try {
+			const result = await authClient.signOut();
+			if (result.error) {
+				setSignOutError(getPublicErrorMessage(result.error));
+				setSigningOut(false);
+				return;
+			}
+
+			window.location.reload();
+		} catch (error) {
+			setSignOutError(getPublicErrorMessage(error));
+			setSigningOut(false);
+		}
+	}
+
+	return { signingOut, signOutError, handleSignOut };
 }

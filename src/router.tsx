@@ -2,6 +2,7 @@ import { ConvexQueryClient } from "@convex-dev/react-query";
 import { notifyManager, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { RouterUnexpectedError } from "~/components/unexpected-error/router-unexpected-error";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -35,7 +36,7 @@ export function getRouter() {
 		context: { queryClient, convexQueryClient },
 		scrollRestoration: true,
 		defaultPreloadStaleTime: 0,
-		defaultErrorComponent: ({ error }) => <p>{error.stack}</p>,
+		defaultErrorComponent: RouterUnexpectedError,
 		defaultNotFoundComponent: () => <p>Not found</p>,
 	});
 

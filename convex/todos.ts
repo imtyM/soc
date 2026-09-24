@@ -7,6 +7,17 @@ import { DEFAULT_TODO_PRIORITY } from "./schema/todo_validators";
 
 const MAX_TODOS = 100;
 
+const TODO_ERRORS = {
+	textRequired: {
+		code: "TODO_TEXT_REQUIRED",
+		message: "Todo text is required",
+	},
+	notFound: {
+		code: "TODO_NOT_FOUND",
+		message: "Todo not found",
+	},
+} as const;
+
 export const todoValidator = schema.tables.todos.validator;
 
 async function getUserId(ctx: QueryCtx | MutationCtx) {
@@ -34,7 +45,7 @@ export const add = mutation({
 		const text = args.text.trim();
 
 		if (!text) {
-			throw new ConvexError("Todo text is required");
+			throw new ConvexError(TODO_ERRORS.textRequired);
 		}
 
 		return await ctx.db.insert("todos", {
@@ -53,7 +64,7 @@ export const setCompleted = mutation({
 		const todo = await ctx.db.get(args.id);
 
 		if (!todo || todo.userId !== userId) {
-			throw new ConvexError("Todo not found");
+			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
 		await ctx.db.patch(args.id, { completed: args.completed });
@@ -67,7 +78,7 @@ export const setPriority = mutation({
 		const todo = await ctx.db.get(args.id);
 
 		if (!todo || todo.userId !== userId) {
-			throw new ConvexError("Todo not found");
+			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
 		await ctx.db.patch(args.id, {
@@ -83,7 +94,7 @@ export const remove = mutation({
 		const todo = await ctx.db.get(args.id);
 
 		if (!todo || todo.userId !== userId) {
-			throw new ConvexError("Todo not found");
+			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
 		await ctx.db.delete(args.id);

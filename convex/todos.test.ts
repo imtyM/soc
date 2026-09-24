@@ -13,6 +13,16 @@ import { modules } from "./test.setup";
 const LOW_PRIORITY = TODO_PRIORITIES[0];
 const HIGH_PRIORITY = TODO_PRIORITIES[2];
 
+const TODO_TEXT_REQUIRED_ERROR = {
+	code: "TODO_TEXT_REQUIRED",
+	message: "Todo text is required",
+};
+
+const TODO_NOT_FOUND_ERROR = {
+	code: "TODO_NOT_FOUND",
+	message: "Todo not found",
+};
+
 describe("todo authentication", () => {
 	test("rejects unauthenticated callers for every public function", async () => {
 		const t = convexTest(schema, modules);
@@ -86,7 +96,7 @@ describe("todo add", () => {
 
 		await expect(
 			actor.client.mutation(api.todos.add, { text }),
-		).rejects.toThrowError(/^Todo text is required$/);
+		).rejects.toHaveProperty("data", TODO_TEXT_REQUIRED_ERROR);
 	});
 });
 
@@ -242,13 +252,13 @@ describe("todo completion", () => {
 				id: missingId,
 				completed: true,
 			}),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		await expect(
 			outsider.client.mutation(api.todos.setCompleted, {
 				id: foreignId,
 				completed: true,
 			}),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
 			foreignTodo,
 		);
@@ -319,13 +329,13 @@ describe("todo priority", () => {
 				id: missingId,
 				priority: HIGH_PRIORITY,
 			}),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		await expect(
 			outsider.client.mutation(api.todos.setPriority, {
 				id: foreignId,
 				priority: HIGH_PRIORITY,
 			}),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
 			foreignTodo,
 		);
@@ -381,10 +391,10 @@ describe("todo removal", () => {
 
 		await expect(
 			outsider.client.mutation(api.todos.remove, { id: missingId }),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		await expect(
 			outsider.client.mutation(api.todos.remove, { id: foreignId }),
-		).rejects.toThrowError(/^Todo not found$/);
+		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
 		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
 			foreignTodo,
 		);
