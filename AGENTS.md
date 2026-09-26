@@ -173,6 +173,20 @@ Apply the Linear/repository boundary above as follows:
 - Hosted observability is deferred to a dedicated PostHog issue; do not add a
   telemetry abstraction prematurely.
 
+## Mutation feedback
+
+- Await mutations and keep pending/failure feedback at the initiating UI. A
+  visible reactive success generally needs no toast.
+- Default to server-confirmed behavior. Use optimism only for pure, synchronous,
+  deterministic, immutable updates of already loaded query data when rollback
+  remains simple and local.
+- Do not use optimism for external side effects, server-authoritative or
+  generated outcomes, or failures requiring broader coordination.
+- Display only explicitly user-safe domain errors; unknown errors use the shared
+  generic fallback and bounded reporting at the handling boundary.
+- Keep one-off optimistic transforms beside their mutation. Extract only after
+  actual reuse.
+
 # Evidence and handoff
 
 - Run focused checks while developing and every issue-required full check

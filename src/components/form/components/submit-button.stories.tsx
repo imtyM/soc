@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/tanstack-react";
+import { expect, userEvent, waitFor } from "storybook/test";
 import { useAppForm } from "..";
 import { FormStateInspector } from "./form-state-inspector";
 
@@ -114,22 +115,22 @@ export const LoadingState: Story = {
 	render: () => {
 		const form = useAppForm({
 			defaultValues: {},
-			onSubmit: async () => {
-				// Simulate a long API call
-				await new Promise((resolve) => setTimeout(resolve, 3000));
-			},
+			onSubmit: () =>
+				new Promise<void>((resolve) => {
+					resolvePendingSubmission = resolve;
+				}),
 		});
 
 		return (
-			<div className="w-96 space-y-4">
+			<div className="flex w-96 flex-col gap-4">
 				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						form.handleSubmit();
+					onSubmit={(event) => {
+						event.preventDefault();
+						void form.handleSubmit();
 					}}
 				>
 					<form.AppForm>
-						<form.SubmitButton label="Submit (will take 3s)" />
+						<form.SubmitButton label="Submit" pendingLabel="Submitting…" />
 						<FormStateInspector
 							title="Form State"
 							selector={(state) => ({
@@ -141,10 +142,24 @@ export const LoadingState: Story = {
 					</form.AppForm>
 				</form>
 				<p className="text-sm text-muted-foreground">
-					Click the button to see the loading state. The button will be disabled
-					for 3 seconds while "submitting".
+					Submit to see the deterministic pending state.
 				</p>
 			</div>
 		);
 	},
+	play: async ({ canvas }) => {
+		const submitButton = canvas.getByRole("button", { name: "Submit" });
+
+		await userEvent.click(submitButton);
+		const pendingButton = canvas.getByRole("button", { name: "Submitting…" });
+		await expect(pendingButton).toBeDisabled();
+		await expect(pendingButton).toHaveAttribute("aria-busy", "true");
+
+		resolvePendingSubmission();
+		await waitFor(() => expect(submitButton).toBeEnabled());
+		await expect(submitButton).toHaveTextContent("Submit");
+		await expect(submitButton).toHaveAttribute("aria-busy", "false");
+	},
 };
+
+let resolvePendingSubmission = () => {};

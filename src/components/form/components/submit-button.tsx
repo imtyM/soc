@@ -4,6 +4,7 @@ import { useFormContext } from "../contexts";
 
 export interface SubmitButtonProps extends VariantProps<typeof buttonVariants> {
 	label: string;
+	pendingLabel?: string;
 	form?: string;
 }
 
@@ -16,12 +17,17 @@ export interface SubmitButtonProps extends VariantProps<typeof buttonVariants> {
  * @example
  * ```tsx
  * <form.AppForm>
- *   <form.SubmitButton label="Submit" variant="default" />
+ *   <form.SubmitButton
+ *     label="Submit"
+ *     pendingLabel="Submitting…"
+ *     variant="default"
+ *   />
  * </form.AppForm>
  * ```
  */
 export function SubmitButton({
 	label,
+	pendingLabel = label,
 	variant,
 	size,
 	form,
@@ -34,11 +40,12 @@ export function SubmitButton({
 				<Button
 					type="submit"
 					disabled={isSubmitting}
+					aria-busy={isSubmitting}
 					variant={variant}
 					size={size}
 					form={form}
 				>
-					{label}
+					{isSubmitting ? pendingLabel : label}
 				</Button>
 			)}
 		</formContext.Subscribe>
