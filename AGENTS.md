@@ -158,6 +158,39 @@ Apply the Linear/repository boundary above as follows:
 - External writes must be explicitly authorized and limited to the named
   target.
 
+## Pre-production deployment boundary
+
+- SOC is pre-production: the application runs locally and uses one existing
+  shared Convex development deployment whose data is development-only. There is
+  no staging or production environment, selected frontend host, production
+  domain, DNS arrangement, or automated release mechanism. `npm run build` and
+  `npm run start` do not imply that a hosting target or release process exists.
+- Either autonomous execution mode may inspect non-sensitive deployment
+  configuration, status, and logs within issue scope. Never retrieve or print
+  environment values, credentials, OTPs, session data, private records, or
+  credential-bearing URLs merely to prove access.
+- After changing Convex functions or schema, either autonomous mode may run
+  `npx convex dev --once --typecheck enable` only against the already configured
+  shared development deployment. First confirm the target is unambiguously a
+  development deployment; stop if it is absent, unexpected, ambiguous, or
+  production. Never add `--prod`, relink the project, change remote environment
+  variables, make unrelated backend changes, or delete, reset, weaken, or
+  migrate stored data just to make verification pass. Report the command and
+  outcome in the pull request.
+- All other deployment or infrastructure mutations require a target-specific
+  `agent-and-user` issue and explicit approval at the external-write checkpoint.
+  This includes creating or changing Convex projects/deployments, remote
+  environment variables or secrets, hosting, staging/production environments,
+  domains/DNS/certificates/public origins, release automation, production
+  deploys, rollbacks, restoration, and destructive data operations. Secret
+  rotation and production/release architecture remain deferred to separately
+  specified interactive issues.
+- General requests such as `finish`, `ship`, `release`, or `make it live`, and
+  opening or merging a pull request, never authorize deployment. Local
+  verification and a production release are separate outcomes; do not describe
+  SOC as deployed, live, or production-ready without evidence and explicit
+  developer confirmation.
+
 ## Error handling and logging
 
 - Expected application errors are stable, typed, safe to display, and owned by
