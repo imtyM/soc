@@ -1,9 +1,8 @@
-import { convexQuery, useConvexAuth } from "@convex-dev/react-query";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useConvexAuth } from "@convex-dev/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useState } from "react";
 import { PhoneAuth } from "~/components/auth/phone-auth";
-import { TodoList } from "~/components/todos/todo-list";
+import { AuthenticatedHome } from "~/components/authenticated-home";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -15,7 +14,6 @@ import {
 } from "~/components/ui/card";
 import { authClient } from "~/lib/auth-client";
 import { getPublicErrorMessage } from "~/lib/public-error";
-import { api } from "../../convex/_generated/api";
 
 export const Route = createFileRoute("/")({
 	component: Home,
@@ -81,30 +79,6 @@ function Home() {
 				) : null}
 			</Card>
 		</main>
-	);
-}
-
-function CurrentUser() {
-	const { data: user } = useSuspenseQuery(
-		convexQuery(api.auth.getCurrentUser, {}),
-	);
-
-	return (
-		<div className="flex flex-col gap-1">
-			<p className="font-medium">{user?.name ?? "Authenticated user"}</p>
-			{user?.phoneNumber ? (
-				<p className="text-sm text-muted-foreground">{user.phoneNumber}</p>
-			) : null}
-		</div>
-	);
-}
-
-function AuthenticatedHome() {
-	return (
-		<div className="flex flex-col gap-8">
-			<CurrentUser />
-			<TodoList />
-		</div>
 	);
 }
 

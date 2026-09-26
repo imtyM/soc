@@ -1,16 +1,14 @@
-import { convexQuery } from "@convex-dev/react-query";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyTitle,
 } from "~/components/ui/empty";
-import { api } from "../../../../convex/_generated/api";
 import { TodoItem } from "./todo-item";
+import { useTodoList } from "./todo-list-context";
 
 export function Todos() {
-	const { data: todos } = useSuspenseQuery(convexQuery(api.todos.list, {}));
+	const { todos } = useTodoList();
 
 	if (todos.length === 0) {
 		return (

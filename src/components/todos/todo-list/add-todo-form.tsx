@@ -1,13 +1,12 @@
 /* biome-ignore-all lint/correctness/noChildrenProp: TanStack Form uses a children render prop to preserve field type inference. */
-import { useConvexMutation } from "@convex-dev/react-query";
 import { z } from "zod";
 import { useAppForm } from "~/components/form";
 import { FieldGroup } from "~/components/ui/field";
-import { api } from "../../../../convex/_generated/api";
 import {
 	DEFAULT_TODO_PRIORITY,
 	TODO_PRIORITIES,
 } from "../../../../convex/schema/todo_validators";
+import { useTodoList } from "./todo-list-context";
 import { todoPriorityOptions } from "./todo-priority-options";
 
 const todoFormSchema = z.object({
@@ -21,7 +20,7 @@ const defaultValues: z.infer<typeof todoFormSchema> = {
 };
 
 export function AddTodoForm() {
-	const addTodo = useConvexMutation(api.todos.add);
+	const { addTodo } = useTodoList();
 	const form = useAppForm({
 		defaultValues,
 		validators: {
