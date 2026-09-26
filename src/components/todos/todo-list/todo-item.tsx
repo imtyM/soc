@@ -1,4 +1,3 @@
-import { useConvexMutation } from "@convex-dev/react-query";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
@@ -10,9 +9,9 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { cn } from "~/lib/utils";
-import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { DEFAULT_TODO_PRIORITY } from "../../../../convex/schema/todo_validators";
+import { useTodoList } from "./todo-list-context";
 import { todoPriorityOptions } from "./todo-priority-options";
 
 interface TodoItemProps {
@@ -20,9 +19,7 @@ interface TodoItemProps {
 }
 
 export function TodoItem({ todo }: TodoItemProps) {
-	const setCompleted = useConvexMutation(api.todos.setCompleted);
-	const setPriority = useConvexMutation(api.todos.setPriority);
-	const removeTodo = useConvexMutation(api.todos.remove);
+	const { setCompleted, setPriority, removeTodo } = useTodoList();
 	const priority = todo.priority ?? DEFAULT_TODO_PRIORITY;
 
 	return (
