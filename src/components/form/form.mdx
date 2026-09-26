@@ -217,7 +217,7 @@ export function YourFormComponent({ label }) {
 
 <Canvas of={SubmitButtonStories.LoadingState} />
 
-- **SubmitButton**: `label`, `variant`, `size` - Auto-disables during submission
+- **SubmitButton**: `label`, `pendingLabel`, `variant`, `size` - Auto-disables, sets `aria-busy`, and can show a pending label during submission
 - **FormErrors**: Displays form-level validation errors
 - **FormStateInspector**: Debug utility for Storybook
 
@@ -656,7 +656,7 @@ React.useEffect(() => {
 | **FormRadioGroup** | Radio buttons | `label`, `options` |
 | **FormSwitch** | Toggle | `label`, `description` |
 | **CurrencyField** | Amount and currency group | `fields`, `label`, `currencyOptions` |
-| **SubmitButton** | Submit button | `label`, `variant` |
+| **SubmitButton** | Submit button | `label`, `pendingLabel`, `variant`, `size` |
 | **FormErrors** | Error display | - |
 
 ### External Documentation

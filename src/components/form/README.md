@@ -73,8 +73,11 @@ component. Wrap form-level components in `AppForm`.
 | `FormCheckbox` | `boolean` | Checkbox input |
 | `FormRadioGroup` | `string` | Default or card-style radio choices |
 | `FormSwitch` | `boolean` | Toggle input |
-| `SubmitButton` | form state | Submit button with submitting state |
+| `SubmitButton` | form state | Submit button with disabled, busy, and optional pending-label state |
 | `FormErrors` | form state | Consolidated validation errors |
+
+`SubmitButton` accepts an optional `pendingLabel` for visible in-progress
+feedback. It disables itself and sets `aria-busy` while the form submits.
 
 `FormStateInspector` is an unregistered Storybook utility and must be rendered
 inside `form.AppForm`.
