@@ -13,6 +13,7 @@
 			".vscode/**/*",
 			"index.html",
 			"vite.config.ts",
+			"eslint.config.js",
 			"tsconfig.json",
 			"package.json",
 			"components.json",

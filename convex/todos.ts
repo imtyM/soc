@@ -61,13 +61,13 @@ export const setCompleted = mutation({
 	args: todoValidator.pick("completed").extend({ id: v.id("todos") }),
 	handler: async (ctx, args) => {
 		const userId = await getUserId(ctx);
-		const todo = await ctx.db.get(args.id);
+		const todo = await ctx.db.get("todos", args.id);
 
 		if (!todo || todo.userId !== userId) {
 			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
-		await ctx.db.patch(args.id, { completed: args.completed });
+		await ctx.db.patch("todos", args.id, { completed: args.completed });
 	},
 });
 
@@ -75,13 +75,13 @@ export const setPriority = mutation({
 	args: todoValidator.pick("priority").extend({ id: v.id("todos") }),
 	handler: async (ctx, args) => {
 		const userId = await getUserId(ctx);
-		const todo = await ctx.db.get(args.id);
+		const todo = await ctx.db.get("todos", args.id);
 
 		if (!todo || todo.userId !== userId) {
 			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
-		await ctx.db.patch(args.id, {
+		await ctx.db.patch("todos", args.id, {
 			priority: args.priority ?? DEFAULT_TODO_PRIORITY,
 		});
 	},
@@ -91,12 +91,12 @@ export const remove = mutation({
 	args: { id: v.id("todos") },
 	handler: async (ctx, args) => {
 		const userId = await getUserId(ctx);
-		const todo = await ctx.db.get(args.id);
+		const todo = await ctx.db.get("todos", args.id);
 
 		if (!todo || todo.userId !== userId) {
 			throw new ConvexError(TODO_ERRORS.notFound);
 		}
 
-		await ctx.db.delete(args.id);
+		await ctx.db.delete("todos", args.id);
 	},
 });

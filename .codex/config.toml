@@ -1,2 +1,6 @@
+[mcp_servers.convex]
+command = "node"
+args = ["node_modules/convex/bin/main.js", "mcp", "start", "--project-dir", ".", "--disable-tools", "data,runOneoffQuery,run,logs,envGet,envList,envSet,envRemove"]
+
 [mcp_servers.storybook]
 url = "http://localhost:6006/mcp"

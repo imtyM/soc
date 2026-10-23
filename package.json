@@ -10,8 +10,9 @@
 		"start": "node .output/server/index.mjs",
 		"storybook": "storybook dev -p 6006",
 		"format": "biome format --write .",
-		"lint": "tsc --noEmit && biome lint .",
-		"check": "tsc --noEmit && biome check .",
+		"lint": "tsc --noEmit && biome lint . && npm run lint:convex",
+		"lint:convex": "eslint convex --max-warnings 0",
+		"check": "tsc --noEmit && biome check . && npm run lint:convex",
 		"test": "vitest run",
 		"test:convex": "vitest run --project=convex",
 		"test:storybook": "vitest run --project=storybook"
@@ -41,6 +42,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.5",
+		"@convex-dev/eslint-plugin": "^5.0.0",
 		"@edge-runtime/vm": "^5.0.0",
 		"@storybook/addon-a11y": "^10.6.0",
 		"@storybook/addon-docs": "^10.5.2",
@@ -54,10 +56,12 @@
 		"@vitejs/plugin-react": "^6.0.2",
 		"@vitest/browser-playwright": "latest",
 		"convex-test": "^0.0.58",
+		"eslint": "^10.13.0",
 		"playwright": "latest",
 		"storybook": "^10.5.2",
 		"tailwindcss": "^4.2.2",
 		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.72.0",
 		"vite": "^8.0.9",
 		"vite-tsconfig-paths": "^6.1.1",
 		"vitest": "latest"

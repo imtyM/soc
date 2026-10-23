@@ -69,8 +69,24 @@ Open [http://localhost:4317](http://localhost:4317). The port is strict; the dev
 | `npm run storybook` | Run Storybook at [http://localhost:6006](http://localhost:6006). |
 | `npm run build-storybook` | Build the static Storybook catalog. |
 | `npm run format` | Format the repository with Biome. |
-| `npm run lint` | Run TypeScript and Biome lint checks. |
-| `npm run check` | Run the full TypeScript and Biome checks without writing changes. |
+| `npm run lint` | Run TypeScript, Biome lint, and Convex-specific ESLint checks. |
+| `npm run lint:convex` | Run type-aware Convex ESLint rules on authored backend code. |
+| `npm run check` | Run TypeScript, Biome, and Convex lint checks without writing changes. |
+
+## Agent integrations
+
+Project-local MCP configuration supports Storybook and restricted Convex
+inspection in Claude Code (`.mcp.json`) and Codex (`.codex/config.toml`). Open the
+client from the repository root after `npm ci`; Convex uses the installed CLI,
+not an automatically downloaded latest version. Restart/reconnect the client
+and approve the project server if prompted.
+
+Convex exposes only deployment status, table/schema metadata, function
+interfaces, and health insights. It uses existing local Convex authentication;
+missing access requires project-owner help, not a replacement deployment.
+See [the MCP safety boundary in `AGENTS.md`](AGENTS.md#restricted-mcp-inspection)
+before using it. This configuration is not credential isolation or permission
+to inspect another deployment.
 
 ## Foundation smoke test
 

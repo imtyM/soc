@@ -356,13 +356,44 @@ Lint a focused path with:
 npx biome lint [PATH]
 ```
 
-Run the full typecheck and Biome checks with:
+Run Convex-only, type-aware ESLint rules on authored backend code with:
+
+```bash
+npm run lint:convex
+```
+
+Biome remains responsible for formatting and general linting. ESLint runs only
+the Convex plugin recommended rules; generated code is excluded. Fix findings
+rather than disabling rules, and include explicit table names in database calls.
+
+Run the full TypeScript, Biome, and Convex lint checks with:
 
 ```bash
 npm run check
 ```
 
 ## Convex
+
+### Restricted MCP inspection
+
+- Project-local `.mcp.json` (Claude Code) and `.codex/config.toml` (Codex)
+  launch the installed Convex CLI from the repository root after `npm ci`.
+  Preserve the existing Storybook MCP integration.
+- Use only `status`, `tables`, `functionSpec`, and `insights`, within issue
+  scope and only against the configured shared development deployment. Confirm
+  the selected target is that development deployment before inspecting it;
+  stop on missing, ambiguous, unexpected, or production targets.
+- Document reads, one-off queries, function execution, logs, and all environment
+  tools are disabled. Do not re-enable them or add production-access flags to
+  bypass this boundary. Other CLI access does not expand issue authority.
+- `--project-dir` and disabled tools are not credential isolation: existing
+  global Convex authentication may reach other projects, and some metadata
+  tools support production reads by default. Do not target those deployments.
+  Deployment-scoped credentials require a separately approved interactive
+  checkpoint; never put credentials in MCP configuration. Scoped deploy keys
+  also make `insights` unavailable.
+- On Convex upgrades, verify the advertised MCP tool inventory still contains
+  only the four allowed tools; new tools must not silently broaden access.
 
 ### Schema compatibility and development data
 
