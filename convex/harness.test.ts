@@ -18,7 +18,7 @@ test("runs against an isolated schema-backed Convex instance", async () => {
 			completed: false,
 		});
 
-		return await ctx.db.get(todoId);
+		return await ctx.db.get("todos", todoId);
 	});
 
 	expect(storedTodo).toMatchObject({

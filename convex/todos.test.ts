@@ -65,7 +65,7 @@ describe("todo add", () => {
 		const todoId = await actor.client.mutation(api.todos.add, {
 			text: "  Test the todo contract  ",
 		});
-		const todo = await t.run(async (ctx) => await ctx.db.get(todoId));
+		const todo = await t.run(async (ctx) => await ctx.db.get("todos", todoId));
 
 		expect(todo).toMatchObject({
 			userId: actor.userId,
@@ -84,7 +84,7 @@ describe("todo add", () => {
 			text: "Explicit priority",
 			priority: HIGH_PRIORITY,
 		});
-		const todo = await t.run(async (ctx) => await ctx.db.get(todoId));
+		const todo = await t.run(async (ctx) => await ctx.db.get("todos", todoId));
 
 		expect(todo?.priority).toBe(HIGH_PRIORITY);
 	});
@@ -200,7 +200,7 @@ describe("todo completion", () => {
 			id: todoId,
 			completed: true,
 		});
-		let todo = await t.run(async (ctx) => await ctx.db.get(todoId));
+		let todo = await t.run(async (ctx) => await ctx.db.get("todos", todoId));
 		expect(todo).toMatchObject({
 			text: "Toggle completion",
 			completed: true,
@@ -212,7 +212,7 @@ describe("todo completion", () => {
 			id: todoId,
 			completed: false,
 		});
-		todo = await t.run(async (ctx) => await ctx.db.get(todoId));
+		todo = await t.run(async (ctx) => await ctx.db.get("todos", todoId));
 		expect(todo).toMatchObject({
 			text: "Toggle completion",
 			completed: false,
@@ -242,10 +242,12 @@ describe("todo completion", () => {
 				text: "Deleted completion target",
 				completed: false,
 			});
-			await ctx.db.delete(id);
+			await ctx.db.delete("todos", id);
 			return id;
 		});
-		const foreignTodo = await t.run(async (ctx) => await ctx.db.get(foreignId));
+		const foreignTodo = await t.run(
+			async (ctx) => await ctx.db.get("todos", foreignId),
+		);
 
 		await expect(
 			outsider.client.mutation(api.todos.setCompleted, {
@@ -259,9 +261,9 @@ describe("todo completion", () => {
 				completed: true,
 			}),
 		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
-		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
-			foreignTodo,
-		);
+		expect(
+			await t.run(async (ctx) => await ctx.db.get("todos", foreignId)),
+		).toEqual(foreignTodo);
 	});
 });
 
@@ -279,7 +281,9 @@ describe("todo priority", () => {
 				id: todoId,
 				priority,
 			});
-			const todo = await t.run(async (ctx) => await ctx.db.get(todoId));
+			const todo = await t.run(
+				async (ctx) => await ctx.db.get("todos", todoId),
+			);
 			expect(todo).toMatchObject({
 				text: "Change priority",
 				completed: false,
@@ -289,7 +293,9 @@ describe("todo priority", () => {
 		}
 
 		await actor.client.mutation(api.todos.setPriority, { id: todoId });
-		const resetTodo = await t.run(async (ctx) => await ctx.db.get(todoId));
+		const resetTodo = await t.run(
+			async (ctx) => await ctx.db.get("todos", todoId),
+		);
 		expect(resetTodo).toMatchObject({
 			text: "Change priority",
 			completed: false,
@@ -319,10 +325,12 @@ describe("todo priority", () => {
 				text: "Deleted priority target",
 				completed: false,
 			});
-			await ctx.db.delete(id);
+			await ctx.db.delete("todos", id);
 			return id;
 		});
-		const foreignTodo = await t.run(async (ctx) => await ctx.db.get(foreignId));
+		const foreignTodo = await t.run(
+			async (ctx) => await ctx.db.get("todos", foreignId),
+		);
 
 		await expect(
 			outsider.client.mutation(api.todos.setPriority, {
@@ -336,9 +344,9 @@ describe("todo priority", () => {
 				priority: HIGH_PRIORITY,
 			}),
 		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
-		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
-			foreignTodo,
-		);
+		expect(
+			await t.run(async (ctx) => await ctx.db.get("todos", foreignId)),
+		).toEqual(foreignTodo);
 	});
 });
 
@@ -353,14 +361,18 @@ describe("todo removal", () => {
 		const keptId = await actor.client.mutation(api.todos.add, {
 			text: "Keep this",
 		});
-		const keptTodo = await t.run(async (ctx) => await ctx.db.get(keptId));
+		const keptTodo = await t.run(
+			async (ctx) => await ctx.db.get("todos", keptId),
+		);
 
 		await actor.client.mutation(api.todos.remove, { id: removedId });
 
-		expect(await t.run(async (ctx) => await ctx.db.get(removedId))).toBeNull();
-		expect(await t.run(async (ctx) => await ctx.db.get(keptId))).toEqual(
-			keptTodo,
-		);
+		expect(
+			await t.run(async (ctx) => await ctx.db.get("todos", removedId)),
+		).toBeNull();
+		expect(
+			await t.run(async (ctx) => await ctx.db.get("todos", keptId)),
+		).toEqual(keptTodo);
 	});
 
 	test("hides missing and foreign todos without deleting foreign data", async () => {
@@ -384,10 +396,12 @@ describe("todo removal", () => {
 				text: "Deleted removal target",
 				completed: false,
 			});
-			await ctx.db.delete(id);
+			await ctx.db.delete("todos", id);
 			return id;
 		});
-		const foreignTodo = await t.run(async (ctx) => await ctx.db.get(foreignId));
+		const foreignTodo = await t.run(
+			async (ctx) => await ctx.db.get("todos", foreignId),
+		);
 
 		await expect(
 			outsider.client.mutation(api.todos.remove, { id: missingId }),
@@ -395,8 +409,8 @@ describe("todo removal", () => {
 		await expect(
 			outsider.client.mutation(api.todos.remove, { id: foreignId }),
 		).rejects.toHaveProperty("data", TODO_NOT_FOUND_ERROR);
-		expect(await t.run(async (ctx) => await ctx.db.get(foreignId))).toEqual(
-			foreignTodo,
-		);
+		expect(
+			await t.run(async (ctx) => await ctx.db.get("todos", foreignId)),
+		).toEqual(foreignTodo);
 	});
 });

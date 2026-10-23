@@ -1,5 +1,18 @@
 {
   "mcpServers": {
+    "convex": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "node_modules/convex/bin/main.js",
+        "mcp",
+        "start",
+        "--project-dir",
+        ".",
+        "--disable-tools",
+        "data,runOneoffQuery,run,logs,envGet,envList,envSet,envRemove"
+      ]
+    },
     "storybook": {
       "type": "http",
       "url": "http://localhost:6006/mcp"
