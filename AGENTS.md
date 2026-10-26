@@ -251,6 +251,20 @@ source-project code when SOC's current stack or conventions differ, and do not
 let generated examples, stale documentation, or training-memory patterns
 override repository guidance.
 
+# Engineering philosophy
+
+Prefer “a flawed start that is mouldable over a blank slate.” Build a small,
+working starting point, learn from using it, and refine it rather than waiting
+for an exhaustive specification.
+
+- Use lightweight specs: clarify the outcome, boundaries, acceptance evidence,
+  and material risks; leave reversible details adaptable within the issue's
+  execution mode and authority.
+- Prefer simple, local solutions over speculative abstractions and features.
+- Mouldable does not mean unsafe or misleading. Preserve security, privacy,
+  accessibility, financial correctness, verification, and external-write
+  boundaries. Resolve material ambiguity before affected implementation.
+
 # Project architecture and conventions
 
 ## General rules
@@ -292,6 +306,25 @@ override repository guidance.
 - If port 4317 is occupied, report the conflict. Do not terminate an unrelated
   process without explicit developer authorization.
 - Keep Storybook on port 6006.
+
+## Frontend design and styling tokens
+
+- Use [Nord](https://www.nordtheme.com/) as the shared visual foundation for
+  the website and app. Map its palette to semantic theme roles rather than
+  referencing palette colours directly in components. Check actual contrast
+  and interaction states; a palette does not guarantee accessibility.
+- Use tokens for authored frontend visual styling: semantic colours and shared
+  theme/scale tokens for spacing, typography, sizing, radii, shadows, and motion.
+  Existing Tailwind scale utilities such as `gap-4`, `text-sm`, and `max-w-md`
+  are token use; raw palette utilities such as `bg-blue-500` are not semantic
+  colour tokens. Prefer `bg-primary` and `text-muted-foreground`.
+- Keep raw design values in central token definitions, not component CSS,
+  inline styles, or arbitrary literal utility values. Consume tokens through
+  CSS variables or token-backed utilities; token-derived calculations are fine.
+  This rule concerns visual styling, not business data or text content.
+- Extend the existing theme in `src/styles/app.css` when a needed token is
+  missing; do not create parallel palettes or feature-local design constants.
+  Reuse component variants and the shared scale before adding tokens.
 
 ## React component architecture
 
