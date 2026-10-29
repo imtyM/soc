@@ -278,6 +278,33 @@ for an exhaustive specification.
 - Keep business logic in focused Convex resource files such as `todos.ts`.
   Split a resource only when its concepts become too large to remain clear.
 
+## Convex-owned backend and thin frontend
+
+- Keep backend/domain APIs and helper modules under `convex/`. Convex owns
+  authoritative validation and permissions, persistence, business workflows,
+  financial calculations and reconciliation, external-service integrations and
+  credentials, provider adapters, webhook verification, and SOC's scheduling
+  and retry orchestration (including provider-managed operations).
+- Do not create a parallel business backend in `src/lib`, app API routes or
+  TanStack server functions for work Convex can own. Start with focused,
+  repository-local Convex resource/helper modules, not a reusable framework.
+- Keep the frontend to presentation, forms and validation feedback, local UI
+  and guest-draft state, navigation, formatting/pure previews, and the
+  established Convex query/mutation interfaces. Client validation and previews
+  never replace authoritative backend checks or financial state.
+- Safe shared types, pure validators/constants and generated Convex API
+  references may be consumed by the frontend. Never import backend runtime,
+  provider credential or other secret-bearing modules into client code.
+- Retain necessary thin framework integration, existing Better Auth proxy and
+  session-aware SSR plumbing, and provider-hosted authorisation navigation.
+  These bridges must not acquire domain/payment logic; this boundary alone
+  does not authorise removing or rewriting working auth/SSR infrastructure.
+- Keep payment-provider interfaces, adapters and controlled test fakes under
+  `convex/`, with SOC-owned financial state separate from provider-specific
+  operations. Do not introduce automatic provider failover or assume saved
+  cards/mandates are portable. Current provider/product choices and execution
+  approvals belong in their owning Linear issues, not this durable convention.
+
 ## Stack
 
 - TanStack Start with React and TypeScript
