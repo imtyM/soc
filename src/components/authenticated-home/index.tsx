@@ -1,6 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { AccountAccess } from "~/components/account-access";
 import { TodoList } from "~/components/todos/todo-list";
 import { api } from "../../../convex/_generated/api";
 
@@ -11,6 +12,7 @@ export function AuthenticatedHome() {
 
 	return (
 		<AuthenticatedHomeContent name={user?.name} phoneNumber={user?.phoneNumber}>
+			<AccountAccess />
 			<TodoList />
 		</AuthenticatedHomeContent>
 	);

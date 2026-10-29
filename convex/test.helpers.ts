@@ -8,6 +8,8 @@ const TEST_SESSION_EXPIRY = 4_102_444_800_000;
 type AuthenticatedActorOptions = {
 	name?: string;
 	email?: string;
+	phoneNumber?: string;
+	phoneNumberVerified?: boolean;
 };
 
 type AppTestBackend = TestConvex<typeof schema>;
@@ -25,6 +27,8 @@ export async function createAuthenticatedActor(
 				name,
 				email,
 				emailVerified: true,
+				phoneNumber: options.phoneNumber,
+				phoneNumberVerified: options.phoneNumberVerified,
 				createdAt: TEST_TIMESTAMP,
 				updatedAt: TEST_TIMESTAMP,
 			},
