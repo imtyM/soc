@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { accountRoleValidator } from "./schema/account_validators";
 import { todoPriorityValidator } from "./schema/todo_validators";
 
 // The schema is entirely optional.
@@ -7,6 +8,12 @@ import { todoPriorityValidator } from "./schema/todo_validators";
 // app will continue to work.
 // The schema provides more precise TypeScript types.
 export default defineSchema({
+	accountRoles: defineTable({
+		authUserId: v.string(),
+		role: accountRoleValidator,
+	})
+		.index("by_authUserId", ["authUserId"])
+		.index("by_role", ["role"]),
 	todos: defineTable({
 		userId: v.string(),
 		text: v.string(),

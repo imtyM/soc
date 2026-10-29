@@ -8,8 +8,10 @@
  * @module
  */
 
+import type * as accounts from "../accounts.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as schema_account_validators from "../schema/account_validators.js";
 import type * as schema_todo_validators from "../schema/todo_validators.js";
 import type * as todos from "../todos.js";
 
@@ -20,8 +22,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accounts: typeof accounts;
   auth: typeof auth;
   http: typeof http;
+  "schema/account_validators": typeof schema_account_validators;
   "schema/todo_validators": typeof schema_todo_validators;
   todos: typeof todos;
 }>;
