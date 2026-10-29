@@ -5,6 +5,7 @@ import { useAppForm } from "~/components/form";
 import { Button } from "~/components/ui/button";
 import { FieldGroup } from "~/components/ui/field";
 import { phoneAuthClient } from "~/lib/auth-client";
+import { getPublicErrorMessage } from "~/lib/public-error";
 
 type AuthStep = { kind: "phone" } | { kind: "otp"; phoneNumber: string };
 
@@ -29,7 +30,30 @@ const otpDefaultValues: z.infer<typeof otpSchema> = {
 	code: "",
 };
 
+type PhoneAuthActions = {
+	sendOtp: (input: { phoneNumber: string }) => Promise<{ error?: unknown }>;
+	verifyOtp: (input: {
+		phoneNumber: string;
+		code: string;
+	}) => Promise<{ error?: unknown }>;
+	onSignedIn: () => void;
+};
+
 export function PhoneAuth() {
+	return (
+		<PhoneAuthContent
+			sendOtp={(input) => phoneAuthClient.phoneNumber.sendOtp(input)}
+			verifyOtp={(input) => phoneAuthClient.phoneNumber.verify(input)}
+			onSignedIn={() => window.location.reload()}
+		/>
+	);
+}
+
+export function PhoneAuthContent({
+	sendOtp,
+	verifyOtp,
+	onSignedIn,
+}: PhoneAuthActions) {
 	const [step, setStep] = useState<AuthStep>({ kind: "phone" });
 	const [message, setMessage] = useState<string | null>(null);
 
@@ -37,6 +61,7 @@ export function PhoneAuth() {
 		<div className="flex flex-col gap-6">
 			{step.kind === "phone" ? (
 				<PhoneNumberForm
+					sendOtp={sendOtp}
 					onOtpSent={(phoneNumber) => {
 						setStep({ kind: "otp", phoneNumber });
 						setMessage("OTP generated. Copy it from the Convex function logs.");
@@ -46,6 +71,8 @@ export function PhoneAuth() {
 			) : (
 				<OtpForm
 					phoneNumber={step.phoneNumber}
+					verifyOtp={verifyOtp}
+					onSignedIn={onSignedIn}
 					onBack={() => {
 						setStep({ kind: "phone" });
 						setMessage(null);
@@ -64,9 +91,11 @@ export function PhoneAuth() {
 }
 
 function PhoneNumberForm({
+	sendOtp,
 	onOtpSent,
 	onMessage,
 }: {
+	sendOtp: PhoneAuthActions["sendOtp"];
 	onOtpSent: (phoneNumber: string) => void;
 	onMessage: (message: string | null) => void;
 }) {
@@ -76,14 +105,17 @@ function PhoneNumberForm({
 		onSubmit: async ({ value }) => {
 			onMessage(null);
 			const phoneNumber = normalizePhoneNumber(value.phoneNumber);
-			const result = await phoneAuthClient.phoneNumber.sendOtp({ phoneNumber });
+			try {
+				const result = await sendOtp({ phoneNumber });
+				if (result.error) {
+					onMessage(getPublicErrorMessage(result.error));
+					return;
+				}
 
-			if (result.error) {
-				onMessage(result.error.message ?? "Could not generate the OTP.");
-				return;
+				onOtpSent(phoneNumber);
+			} catch (error) {
+				onMessage(getPublicErrorMessage(error));
 			}
-
-			onOtpSent(phoneNumber);
 		},
 	});
 
@@ -91,7 +123,9 @@ function PhoneNumberForm({
 		<form
 			onSubmit={(event) => {
 				event.preventDefault();
-				void form.handleSubmit();
+				if (!form.state.isSubmitting) {
+					void form.handleSubmit();
+				}
 			}}
 		>
 			<form.AppForm>
@@ -109,7 +143,7 @@ function PhoneNumberForm({
 						)}
 					/>
 					<form.FormErrors />
-					<form.SubmitButton label="Generate OTP" />
+					<form.SubmitButton label="Generate OTP" pendingLabel="Generating…" />
 				</FieldGroup>
 			</form.AppForm>
 		</form>
@@ -118,10 +152,14 @@ function PhoneNumberForm({
 
 function OtpForm({
 	phoneNumber,
+	verifyOtp,
+	onSignedIn,
 	onBack,
 	onMessage,
 }: {
 	phoneNumber: string;
+	verifyOtp: PhoneAuthActions["verifyOtp"];
+	onSignedIn: PhoneAuthActions["onSignedIn"];
 	onBack: () => void;
 	onMessage: (message: string | null) => void;
 }) {
@@ -130,18 +168,18 @@ function OtpForm({
 		validators: { onSubmit: otpSchema },
 		onSubmit: async ({ value }) => {
 			onMessage(null);
-			const result = await phoneAuthClient.phoneNumber.verify({
-				phoneNumber,
-				code: value.code,
-			});
+			try {
+				const result = await verifyOtp({ phoneNumber, code: value.code });
+				if (result.error) {
+					onMessage(getPublicErrorMessage(result.error));
+					return;
+				}
 
-			if (result.error) {
-				onMessage(result.error.message ?? "The OTP could not be verified.");
-				return;
+				onMessage("Phone number verified. You are signed in.");
+				onSignedIn();
+			} catch (error) {
+				onMessage(getPublicErrorMessage(error));
 			}
-
-			onMessage("Phone number verified. You are signed in.");
-			window.location.reload();
 		},
 	});
 
@@ -150,7 +188,9 @@ function OtpForm({
 			<form
 				onSubmit={(event) => {
 					event.preventDefault();
-					void form.handleSubmit();
+					if (!form.state.isSubmitting) {
+						void form.handleSubmit();
+					}
 				}}
 			>
 				<form.AppForm>
@@ -168,13 +208,25 @@ function OtpForm({
 							)}
 						/>
 						<form.FormErrors />
-						<form.SubmitButton label="Verify and sign in" />
+						<form.SubmitButton
+							label="Verify and sign in"
+							pendingLabel="Verifying…"
+						/>
 					</FieldGroup>
 				</form.AppForm>
 			</form>
-			<Button type="button" variant="ghost" onClick={onBack}>
-				Use another number
-			</Button>
+			<form.Subscribe selector={(state) => state.isSubmitting}>
+				{(isSubmitting) => (
+					<Button
+						type="button"
+						variant="ghost"
+						disabled={isSubmitting}
+						onClick={onBack}
+					>
+						Use another number
+					</Button>
+				)}
+			</form.Subscribe>
 		</div>
 	);
 }
