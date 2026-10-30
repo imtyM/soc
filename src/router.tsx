@@ -1,8 +1,8 @@
-import { ConvexQueryClient } from "@convex-dev/react-query";
 import { notifyManager, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { RouterUnexpectedError } from "~/components/unexpected-error/router-unexpected-error";
+import { createConvexQueryClient } from "~/lib/convex-query-client";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -15,9 +15,7 @@ export function getRouter() {
 		throw new Error("VITE_CONVEX_URL is not set");
 	}
 
-	const convexQueryClient = new ConvexQueryClient(convexUrl, {
-		expectAuth: true,
-	});
+	const convexQueryClient = createConvexQueryClient(convexUrl);
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
