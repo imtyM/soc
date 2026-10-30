@@ -33,7 +33,7 @@ The shared development deployment owns these server-side values, declared by [`c
 | `BETTER_AUTH_SECRET` | Better Auth encryption and signing material. | Secret; deployment only. |
 | `SITE_URL` | Application origin accepted by Better Auth. | Deployment only; must be `http://localhost:4317` for shared development. |
 
-Never copy either value into a `VITE_*` variable or a committed file. Deployment variables are configured per deployment and are not read from `.env.local` by Convex functions.
+Never copy these deployment values into a `VITE_*` variable or a committed file. Deployment variables are configured per deployment and are not read from `.env.local` by Convex functions.
 
 ## Run and verify safely
 
@@ -55,7 +55,27 @@ Then run:
 npm run dev
 ```
 
-Open `http://localhost:4317`, request a development phone OTP, retrieve it from the Convex function logs, and confirm sign-in succeeds. OTPs, phone numbers, session data, and log contents are private and must not be copied into documentation or review evidence.
+Open `http://localhost:4317`. Phone sign-in safely reports unavailable until the separate activation checkpoint below is approved. Run `npm run test:convex` and `npm test` for controlled authentication, quota, SSR and browser coverage without sending SMS. Never obtain codes from logs; OTPs, phone numbers, session data and provider responses must not be logged or copied into review evidence.
+
+## Phone authentication activation
+
+Phone authentication uses Twilio Verify managed SMS for valid South African (+27) numbers. Local numbering validation does not prove ownership or reachability. Delivery is off by default, with no alternate password, email, public number-change or recovery endpoint. Existing sessions and sign-out do not depend on SMS capacity.
+
+The following optional deployment-only declarations support activation; they are not local framework variables and must never use a `VITE_*` prefix:
+
+| Variable | Purpose |
+| --- | --- |
+| `PHONE_AUTH_ENABLED` | Only the exact string `true` enables delivery after approval. Missing/other values leave it off. |
+| `TWILIO_ACCOUNT_SID` | Approved Twilio account reference. |
+| `TWILIO_API_KEY_SID` | Approved API key reference. |
+| `TWILIO_API_KEY_SECRET` | Secret used only by backend provider requests. |
+| `TWILIO_VERIFY_SERVICE_SID` | Approved Verify service reference, using SMS and the default ten-minute validity. |
+
+Do not configure, retrieve or change these values as routine onboarding. [SEA-58](https://linear.app/sea-of-change/issue/SEA-58) owns the named deployment/account/service, billing, participant/privacy, credentials and real-delivery approval checkpoint, plus admin-assisted recovery/bootstrap. Implementation/tests alone do not authorise activation.
+
+The app reserves a shared **50 SMS starts per UTC calendar month**, including resends and failed/uncertain potentially billed starts, before calling Twilio. Concurrent reservations and per-phone/global throttles use the transactional Convex rate-limiter component; there are no automatic provider retries or quota refunds. Resends may reuse the same verification and do not extend its original expiry. Verification has at most five checks per challenge. Exhaustion pauses sends, not existing sessions. Do not reset or increase limits to make testing or activation succeed.
+
+App challenge state stores keyed phone digests, provider references and bounded state/times, never raw numbers or codes. Phone digests remain pseudonymous sensitive data, not anonymous data; retention and provider data/billing controls still require activation review. Approved provider verification is consumed before Better Auth account/session creation; uncertain, expired, wrong or replayed outcomes fail closed. No full live browser/SMS flow is established by automated fakes.
 
 ## Troubleshooting
 
@@ -113,7 +133,7 @@ Never paste secrets, OTPs, tokens, cookies, environment values, or private user 
 
 ## Deferred concerns
 
-Per-developer deployments, team secret distribution, production configuration, secret rotation, SMS provider credentials, and deployment automation are intentionally deferred.
+Per-developer deployments, team secret distribution, production configuration, secret rotation, real SMS credential configuration/activation, and deployment automation remain separately gated.
 
 ## Official references
 

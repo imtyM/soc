@@ -31,7 +31,12 @@ type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
   readonly BETTER_AUTH_SECRET: string;
+  readonly PHONE_AUTH_ENABLED: string | undefined;
   readonly SITE_URL: string;
+  readonly TWILIO_ACCOUNT_SID: string | undefined;
+  readonly TWILIO_API_KEY_SECRET: string | undefined;
+  readonly TWILIO_API_KEY_SID: string | undefined;
+  readonly TWILIO_VERIFY_SERVICE_SID: string | undefined;
 };
 
 /**

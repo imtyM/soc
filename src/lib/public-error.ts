@@ -1,4 +1,5 @@
 import { ConvexError } from "convex/values";
+import { PHONE_AUTH_ERRORS } from "../../convex/phone_auth_errors";
 
 export const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
 
@@ -7,7 +8,20 @@ export function getPublicErrorMessage(error: unknown) {
 		return error.data.message;
 	}
 
+	if (
+		error !== null &&
+		typeof error === "object" &&
+		"code" in error &&
+		typeof error.code === "string" &&
+		isPhoneAuthCode(error.code)
+	) {
+		return PHONE_AUTH_ERRORS[error.code];
+	}
 	return GENERIC_ERROR_MESSAGE;
+}
+
+function isPhoneAuthCode(code: string): code is keyof typeof PHONE_AUTH_ERRORS {
+	return Object.hasOwn(PHONE_AUTH_ERRORS, code);
 }
 
 function isPublicErrorData(
