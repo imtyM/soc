@@ -39,7 +39,7 @@ function Home() {
 							? "Your authenticated workspace is closing safely."
 							: isAuthenticated
 								? "Your Better Auth session has been validated by Convex."
-								: "Generate an OTP, then retrieve it from the Convex function logs."}
+								: "Sign in with an SMS code sent to your South African phone number."}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

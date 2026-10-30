@@ -90,16 +90,9 @@ to inspect another deployment.
 
 ## Foundation smoke test
 
-With `npm run dev` running:
+Run `npm run test:convex` for component-backed authentication/quota fixtures and `npm test` for the full suite, including browser interactions and accessibility. These tests use synthetic identities and controlled provider responses, never real SMS. For visual examples, run `npm run storybook` and open [http://localhost:6006](http://localhost:6006).
 
-1. Open [http://localhost:4317](http://localhost:4317).
-2. Request a phone OTP.
-3. Retrieve the development OTP from the Convex function logs without sharing the phone number, OTP, session data, or logs.
-4. Sign in and confirm that Convex validates the Better Auth session.
-5. Create a todo, update its completion or priority, and delete it.
-6. Optionally run `npm run storybook` and open [http://localhost:6006](http://localhost:6006).
-
-Logging the OTP is development-only delivery. It must be replaced before phone authentication is exposed outside a trusted local environment.
+Phone sign-in is intentionally unavailable until separately approved Twilio Verify activation. See [the environment and activation boundary](docs/environment.md#phone-authentication-activation). There is no development-code delivery or password fallback. Do not obtain codes from backend logs or enable real SMS merely to run tests.
 
 ## Documentation
 

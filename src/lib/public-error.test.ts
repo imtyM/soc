@@ -14,6 +14,24 @@ describe("getPublicErrorMessage", () => {
 		expect(getPublicErrorMessage(error)).toBe("Todo not found");
 	});
 
+	test("maps only owned auth codes, never provider message text", () => {
+		expect(
+			getPublicErrorMessage({
+				code: "PHONE_AUTH_THROTTLED",
+				message: PRIVATE_DETAIL,
+			}),
+		).toBe("Please wait before trying again.");
+		expect(
+			getPublicErrorMessage({
+				code: "OTHER_PROVIDER_CODE",
+				message: PRIVATE_DETAIL,
+			}),
+		).toBe(GENERIC_ERROR_MESSAGE);
+		expect(
+			getPublicErrorMessage({ code: "__proto__", message: PRIVATE_DETAIL }),
+		).toBe(GENERIC_ERROR_MESSAGE);
+	});
+
 	test.each([
 		new Error(PRIVATE_DETAIL),
 		new TypeError(`Failed to fetch: ${PRIVATE_DETAIL}`),
