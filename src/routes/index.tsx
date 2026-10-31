@@ -1,9 +1,9 @@
 import { useConvexAuth } from "@convex-dev/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Suspense, useState } from "react";
 import { PhoneAuth } from "~/components/auth/phone-auth";
 import { AuthenticatedHome } from "~/components/authenticated-home";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -25,6 +25,14 @@ function Home() {
 
 	return (
 		<main className="min-h-screen px-6 py-16">
+			<nav aria-label="App" className="mx-auto mb-6 max-w-2xl">
+				<Link
+					to="/app/catalogue"
+					className={buttonVariants({ variant: "outline" })}
+				>
+					Browse giving catalogue
+				</Link>
+			</nav>
 			<Card className="mx-auto max-w-2xl">
 				<CardHeader>
 					<CardTitle>
