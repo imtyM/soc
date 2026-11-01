@@ -2,6 +2,10 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { accountRoleValidator } from "./schema/account_validators";
 import { catalogueEntryValidator } from "./schema/catalogue_validators";
+import {
+	givingPlanShareValidator,
+	givingPlanValidator,
+} from "./schema/giving_plan_validators";
 import { phoneChallengeValidator } from "./schema/phone_auth_validators";
 import { todoPriorityValidator } from "./schema/todo_validators";
 
@@ -10,6 +14,13 @@ import { todoPriorityValidator } from "./schema/todo_validators";
 // app will continue to work.
 // The schema provides more precise TypeScript types.
 export default defineSchema({
+	givingPlans: defineTable(givingPlanValidator).index("by_authUserId", [
+		"authUserId",
+	]),
+	givingPlanShares: defineTable(givingPlanShareValidator).index(
+		"by_planId_and_organisationId",
+		["planId", "organisationId"],
+	),
 	organisations: defineTable(catalogueEntryValidator)
 		.index("by_nameSort", ["nameSort"])
 		.index("by_isReady_and_nameSort", ["isReady", "nameSort"])

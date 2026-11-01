@@ -18,6 +18,9 @@ function CataloguePage() {
 					examples are not real recipients. This catalogue does not collect
 					donations.
 				</p>
+				<Link to="/app/giving-plan" className={buttonVariants()}>
+					Build your giving plan
+				</Link>
 				<Link to="/" className={buttonVariants({ variant: "outline" })}>
 					Account
 				</Link>
