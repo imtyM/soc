@@ -5,6 +5,7 @@ import { ConvexError } from "convex/values";
 import { type ReactNode, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor } from "storybook/test";
 import { PhoneAuthContent } from "~/components/auth/phone-auth";
+import { CatalogueSearch } from "~/components/catalogue/catalogue-browser";
 import { Button } from "~/components/ui/button";
 import { GENERIC_ERROR_MESSAGE } from "~/lib/public-error";
 import { api } from "../../../convex/_generated/api";
@@ -16,6 +17,7 @@ import {
 	type PlanDraft,
 	persistGuestDraft,
 } from "./draft";
+import { GivingPlanLayout } from "./page-layout";
 import { PlanError } from "./plan-error";
 import { PlanForm } from "./plan-form";
 import { AvailableOrganisations } from "./ready-choices";
@@ -27,7 +29,12 @@ import { type EditorOptions, usePlanEditor } from "./use-plan-editor";
 const entries = ["Orchard", "School", "Shelter", "Garden"].map((name, i) => ({
 	organisationId: `synthetic-${i}` as Id<"organisations">,
 	name: `Example ${name}`,
-	description: "Synthetic organisation — not a real recipient.",
+	description: [
+		"Food-growing skills and access to fresh produce.",
+		"Learning resources and support for local classrooms.",
+		"A safe place and practical support for families.",
+		"Community spaces that bring neighbours together.",
+	][i],
 	isSynthetic: true,
 }));
 const chosen: PlanDraft = {
@@ -48,7 +55,7 @@ const verifyOtp = fn().mockResolvedValue({
 const meta = {
 	title: "Giving/Giving Plan",
 	component: PlanLoading,
-	parameters: { layout: "padded" },
+	parameters: { layout: "fullscreen" },
 	beforeEach: () => {
 		save.mockReset().mockImplementation(async (args) => ({
 			version: (args.expectedVersion ?? 0) + 1,
@@ -72,6 +79,9 @@ export const BuildAdjustAndSave: Story = {
 			await userEvent.click(
 				canvas.getByRole("button", { name: `Add ${e.name}` }),
 			);
+		await expect(
+			canvas.getByRole("button", { name: "Added Example Orchard" }),
+		).toBeDisabled();
 		for (let i = 0; i < 3; i++) {
 			const input = canvas.getByRole("textbox", {
 				name: `Share for ${entries[i].name} (%)`,
@@ -101,14 +111,18 @@ export const BuildAdjustAndSave: Story = {
 		await expect(
 			canvas.getByText("Unsaved changes — not funded"),
 		).toBeVisible();
+		// Native Enter is covered by the Playwright smoke: user-event's keypress
+		// simulation only searches descendants, not external form-associated buttons.
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
 		);
-		await expect(save).toHaveBeenLastCalledWith(
-			expect.objectContaining({
-				monthlyAmountMinor: 15000,
-				expectedVersion: 1,
-			}),
+		await waitFor(() =>
+			expect(save).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					monthlyAmountMinor: 15000,
+					expectedVersion: 1,
+				}),
+			),
 		);
 	},
 };
@@ -233,9 +247,10 @@ export const PendingFailureAndRetry: Story = {
 		await expect(
 			canvas.getByRole("textbox", { name: "Monthly total (rand)" }),
 		).toBeDisabled();
-		const form = canvas
+		const formId = canvas
 			.getByRole("button", { name: "Saving…" })
-			.closest("form");
+			.getAttribute("form");
+		const form = formId ? document.getElementById(formId) : null;
 		if (!form) throw new Error("Missing form");
 		await fireEvent.submit(form);
 		await fireEvent.submit(form);
@@ -308,7 +323,7 @@ export const GuestStorageFailure: Story = {
 	),
 	play: async ({ canvas }) => {
 		await userEvent.click(
-			canvas.getByRole("button", { name: "Continue to phone verification" }),
+			canvas.getByRole("button", { name: "Continue to verify phone" }),
 		);
 		await expect(await canvas.findByRole("status")).toHaveTextContent(
 			"Tab storage is unavailable",
@@ -334,7 +349,7 @@ export const AuthFailureAndRetry: Story = {
 	),
 	play: async ({ canvas }) => {
 		await userEvent.click(
-			canvas.getByRole("button", { name: "Continue to phone verification" }),
+			canvas.getByRole("button", { name: "Continue to verify phone" }),
 		);
 		await userEvent.type(
 			canvas.getByRole("textbox", { name: "Phone number" }),
@@ -391,6 +406,48 @@ export const RetainedGuestIsUnsaved: Story = {
 		).toHaveValue("50.00");
 	},
 };
+export const DesignGuest: Story = {
+	render: () => (
+		<Workspace
+			options={{ initial: chosen, version: null, save, persist: () => true }}
+			phone={<p>Controlled verification fixture — no SMS is sent.</p>}
+		/>
+	),
+};
+export const DesignSaved: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+};
+export const DesignEmpty: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: emptyDraft,
+				version: null,
+				save,
+				persist: () => true,
+			}}
+		/>
+	),
+};
+export const DesignLongContent: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: {
+					...chosen,
+					selections: chosen.selections.map((s) => ({
+						...s,
+						name:
+							s.name +
+							" — Community food, education and family support in the northern district",
+					})),
+				},
+				version: 1,
+				save,
+			}}
+		/>
+	),
+};
 export const Loading: Story = {};
 export const QueryFailureAndRetry: Story = {
 	render: () => <QueryRecovery />,
@@ -413,20 +470,44 @@ function Workspace({
 	phone?: ReactNode;
 }) {
 	const editor = usePlanEditor(options);
+	const [search, setSearch] = useState("");
 	return (
-		<main className="mx-auto flex max-w-3xl flex-col gap-6">
-			<PlanForm editor={editor} guest={Boolean(options.persist)} />
-			<editor.form.Subscribe selector={(s) => s.isSubmitting}>
-				{(pending) => (
-					<AvailableOrganisations
-						entries={entries}
-						disabled={pending}
-						onAdd={editor.add}
-					/>
-				)}
-			</editor.form.Subscribe>
-			{editor.showAuth && phone}
-		</main>
+		<GivingPlanLayout>
+			<PlanForm
+				editor={editor}
+				guest={Boolean(options.persist)}
+				phone={editor.showAuth && phone}
+			>
+				<section
+					aria-label="Choose ready organisations"
+					className="flex flex-col gap-4"
+				>
+					<div className="flex flex-col gap-1">
+						<h2 className="text-lg font-semibold">Add ready organisations</h2>
+						<p className="text-sm text-muted-foreground">
+							Find an organisation and add it to your mix.
+						</p>
+					</div>
+					<CatalogueSearch onSearch={setSearch} />
+					<editor.form.Subscribe selector={(s) => s}>
+						{(state) => (
+							<AvailableOrganisations
+								entries={entries.filter((e) =>
+									`${e.name} ${e.description}`
+										.toLowerCase()
+										.includes(search.toLowerCase()),
+								)}
+								disabled={state.isSubmitting}
+								selectedIds={state.values.selections.map(
+									(s) => s.organisationId,
+								)}
+								onAdd={editor.add}
+							/>
+						)}
+					</editor.form.Subscribe>
+				</section>
+			</PlanForm>
+		</GivingPlanLayout>
 	);
 }
 const RELOAD_AUTH_KEY = "soc.story.giving-plan.verified";

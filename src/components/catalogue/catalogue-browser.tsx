@@ -46,19 +46,21 @@ export function CatalogueSearch({
 			}}
 		>
 			<form.AppForm>
-				<FieldGroup>
-					<form.AppField
-						name="query"
-						children={(field) => (
-							<field.FormInput
-								label="Search organisations"
-								description="Search names and descriptions. Clear the search to browse all ready entries."
-							/>
-						)}
-					/>
-					<form.FormErrors />
-					<form.SubmitButton label="Search" />
+				<FieldGroup className="flex-row items-end gap-3">
+					<div className="min-w-0 flex-1">
+						<form.AppField
+							name="query"
+							children={(field) => (
+								<field.FormInput
+									label="Search organisations"
+									placeholder="Search names and descriptions"
+								/>
+							)}
+						/>
+					</div>
+					<form.SubmitButton label="Search" variant="outline" />
 				</FieldGroup>
+				<form.FormErrors />
 			</form.AppForm>
 		</form>
 	);

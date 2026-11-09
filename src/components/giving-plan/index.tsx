@@ -78,27 +78,38 @@ function PlanWorkspace({
 			: undefined,
 	});
 	return (
-		<div className="flex flex-col gap-8">
-			<PlanForm editor={editor} guest={guest} />
-			<editor.form.Subscribe selector={(s) => s.isSubmitting}>
-				{(pending) => <ReadyChoices disabled={pending} onAdd={editor.add} />}
+		<PlanForm
+			editor={editor}
+			guest={guest}
+			phone={
+				guest &&
+				editor.showAuth && (
+					<section
+						aria-label="Verify phone to save"
+						className="flex flex-col gap-4"
+					>
+						<h2 className="text-lg font-semibold">
+							Verify your phone to save this plan
+						</h2>
+						<p>
+							Your draft stays in this tab through verification and the sign-in
+							reload. Saving after verification still does not start payments.
+						</p>
+						<PhoneAuth />
+					</section>
+				)
+			}
+		>
+			<editor.form.Subscribe selector={(s) => s}>
+				{(state) => (
+					<ReadyChoices
+						disabled={state.isSubmitting}
+						selectedIds={state.values.selections.map((s) => s.organisationId)}
+						onAdd={editor.add}
+					/>
+				)}
 			</editor.form.Subscribe>
-			{guest && editor.showAuth && (
-				<section
-					aria-label="Verify phone to save"
-					className="flex flex-col gap-4"
-				>
-					<h2 className="text-lg font-semibold">
-						Verify your phone to save this plan
-					</h2>
-					<p>
-						Your draft stays in this tab through verification and the sign-in
-						reload. Saving after verification still does not start payments.
-					</p>
-					<PhoneAuth />
-				</section>
-			)}
-		</div>
+		</PlanForm>
 	);
 }
 export function PlanLoading() {
