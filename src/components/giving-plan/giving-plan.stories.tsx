@@ -69,12 +69,25 @@ const meta = {
 } satisfies Meta<typeof PlanLoading>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+type Canvas = Parameters<NonNullable<Story["play"]>>[0]["canvas"];
+async function nextStep(canvas: Canvas) {
+	await userEvent.click(canvas.getByRole("button", { name: "Continue" }));
+}
+async function reviewFromAmount(canvas: Canvas) {
+	await nextStep(canvas);
+	await nextStep(canvas);
+	await nextStep(canvas);
+}
 
 export const BuildAdjustAndSave: Story = {
 	render: () => (
 		<Workspace options={{ initial: emptyDraft, version: null, save }} />
 	),
 	play: async ({ canvas }) => {
+		await nextStep(canvas);
+		await expect(
+			canvas.queryByRole("textbox", { name: "Monthly total (rand)" }),
+		).not.toBeInTheDocument();
 		for (const e of entries.slice(0, 3))
 			await userEvent.click(
 				canvas.getByRole("button", { name: `Add ${e.name}` }),
@@ -82,6 +95,7 @@ export const BuildAdjustAndSave: Story = {
 		await expect(
 			canvas.getByRole("button", { name: "Added Example Orchard" }),
 		).toBeDisabled();
+		await nextStep(canvas);
 		for (let i = 0; i < 3; i++) {
 			const input = canvas.getByRole("textbox", {
 				name: `Share for ${entries[i].name} (%)`,
@@ -93,6 +107,7 @@ export const BuildAdjustAndSave: Story = {
 		await expect(preview).toHaveTextContent("Example Orchard: R50.00");
 		await expect(preview).toHaveTextContent("Example School: R30.00");
 		await expect(preview).toHaveTextContent("Example Shelter: R20.00");
+		await nextStep(canvas);
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
 		);
@@ -100,11 +115,13 @@ export const BuildAdjustAndSave: Story = {
 		await expect(await canvas.findByRole("status")).toHaveTextContent(
 			"Plan saved — not funded",
 		);
+		await userEvent.click(canvas.getByRole("button", { name: "Edit amount" }));
 		const amount = canvas.getByRole("textbox", {
 			name: "Monthly total (rand)",
 		});
 		await userEvent.clear(amount);
 		await userEvent.type(amount, "150.00");
+		await reviewFromAmount(canvas);
 		await expect(
 			canvas.getByRole("region", { name: "Allocation preview" }),
 		).toHaveTextContent("Example Orchard: R75.00");
@@ -130,8 +147,12 @@ export const ProportionalEdits: Story = {
 	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
 	play: async ({ canvas }) => {
 		await userEvent.click(
+			canvas.getByRole("button", { name: "Edit organisations" }),
+		);
+		await userEvent.click(
 			canvas.getByRole("button", { name: "Add Example Garden" }),
 		);
+		await nextStep(canvas);
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
 		).toHaveValue("37.50");
@@ -150,11 +171,14 @@ export const ProportionalEdits: Story = {
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
 		).toHaveValue("30.00");
+		await userEvent.click(canvas.getByRole("button", { name: "Amount" }));
 		const amount = canvas.getByRole("textbox", {
 			name: "Monthly total (rand)",
 		});
 		await userEvent.clear(amount);
 		await userEvent.type(amount, "100.01");
+		await nextStep(canvas);
+		await nextStep(canvas);
 		await expect(
 			canvas.getByRole("region", { name: "Allocation preview" }),
 		).toHaveTextContent("Example Orchard: R50.01");
@@ -187,9 +211,8 @@ export const ValidationAndEmpty: Story = {
 		<Workspace options={{ initial: emptyDraft, version: null, save }} />
 	),
 	play: async ({ canvas }) => {
-		await userEvent.click(
-			canvas.getByRole("button", { name: "Save giving plan" }),
-		);
+		await nextStep(canvas);
+		await userEvent.click(canvas.getByRole("button", { name: "Continue" }));
 		await waitFor(() =>
 			expect(
 				canvas.getByRole("button", { name: "Add Example Orchard" }),
@@ -199,18 +222,18 @@ export const ValidationAndEmpty: Story = {
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Add Example Orchard" }),
 		);
+		await userEvent.click(canvas.getByRole("button", { name: "Amount" }));
 		const amount = canvas.getByRole("textbox", {
 			name: "Monthly total (rand)",
 		});
 		await userEvent.clear(amount);
 		await userEvent.type(amount, "49.99");
-		await userEvent.click(
-			canvas.getByRole("button", { name: "Save giving plan" }),
-		);
+		await userEvent.click(canvas.getByRole("button", { name: "Continue" }));
 		await waitFor(() => expect(amount).toHaveAttribute("aria-invalid", "true"));
 		await expect(save).not.toHaveBeenCalled();
 		await userEvent.clear(amount);
 		await userEvent.type(amount, "50");
+		await reviewFromAmount(canvas);
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
 		);
@@ -219,11 +242,14 @@ export const ValidationAndEmpty: Story = {
 			"Plan saved — not funded",
 		);
 		await userEvent.click(
+			canvas.getByRole("button", { name: "Edit organisations" }),
+		);
+		await userEvent.click(
 			canvas.getByRole("button", { name: "Remove Example Orchard" }),
 		);
 		await expect(
 			canvas.getByText(
-				"No organisations selected. Add ready organisations below.",
+				"No organisations selected. Add ready organisations above.",
 			),
 		).toBeVisible();
 	},
@@ -245,7 +271,7 @@ export const PendingFailureAndRetry: Story = {
 			canvas.getByRole("button", { name: "Saving…" }),
 		).toBeDisabled();
 		await expect(
-			canvas.getByRole("textbox", { name: "Monthly total (rand)" }),
+			canvas.getByRole("button", { name: "Edit amount" }),
 		).toBeDisabled();
 		const formId = canvas
 			.getByRole("button", { name: "Saving…" })
@@ -266,9 +292,11 @@ export const PendingFailureAndRetry: Story = {
 			"no longer selectable",
 		);
 		await expect(save).toHaveBeenCalledTimes(1);
+		await userEvent.click(canvas.getByRole("button", { name: "Edit amount" }));
 		await expect(
 			canvas.getByRole("textbox", { name: "Monthly total (rand)" }),
 		).toHaveValue("100.00");
+		await reviewFromAmount(canvas);
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
 		);
@@ -368,8 +396,8 @@ export const AuthFailureAndRetry: Story = {
 			expect(canvas.getByText(GENERIC_ERROR_MESSAGE)).toBeVisible(),
 		);
 		await expect(
-			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
-		).toHaveValue("50.00");
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("Example Orchard: R50.00");
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Verify and sign in" }),
 		);
@@ -401,9 +429,122 @@ export const RetainedGuestIsUnsaved: Story = {
 		await expect(await canvas.findByRole("status")).toHaveTextContent(
 			"Plan saved — not funded",
 		);
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
 		).toHaveValue("50.00");
+	},
+};
+export const GuidedMixValidation: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const school = await canvas.findByRole("button", {
+			name: "Example School: 30.00%, R30.00",
+		});
+		// Native hit-testing of curved SVG sectors is covered by the browser smoke.
+		await fireEvent.mouseOver(school);
+		await waitFor(() =>
+			expect(
+				canvas.getByRole("button", { name: "Example School: 30.00%, R30.00" }),
+			).toHaveAttribute("aria-pressed", "true"),
+		);
+		canvas
+			.getByRole("button", { name: "Example School: 30.00%, R30.00" })
+			.focus();
+		await userEvent.keyboard("{Enter}");
+		await expect(save).not.toHaveBeenCalled();
+		const field = (name: string) =>
+			canvas.getByRole("textbox", { name: `Share for Example ${name} (%)` });
+		async function share(name: string, value: string) {
+			await userEvent.clear(field(name));
+			await userEvent.type(field(name), value);
+		}
+		await share("School", "20");
+		await expect(
+			await canvas.findByRole("button", { name: "Unallocated: 10.00%" }),
+		).toBeVisible();
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("Example Orchard: —");
+		// Even a previously visited Review step cannot bypass validation.
+		await userEvent.click(canvas.getByRole("button", { name: "Review" }));
+		await nextStep(canvas);
+		await expect(
+			canvas.getByRole("heading", { name: "Make the mix yours" }),
+		).toBeVisible();
+		for (const name of ["Orchard", "School", "Shelter"]) await share(name, "0");
+		await expect(
+			await canvas.findByRole("button", { name: "Unallocated: 100.00%" }),
+		).toBeVisible();
+		await nextStep(canvas);
+		await expect(save).not.toHaveBeenCalled();
+		await share("Orchard", "100");
+		await share("School", "20");
+		await expect(canvas.getByText("Check your shares")).toBeVisible();
+		await expect(
+			canvas.queryByRole("button", { name: /^Example Orchard: 100/ }),
+		).not.toBeInTheDocument();
+		await nextStep(canvas);
+		await expect(save).not.toHaveBeenCalled();
+		await share("Orchard", "0");
+		await share("School", "0");
+		await share("Shelter", "100");
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		);
+		await expect(canvas.getByText("0% · R0.00")).toBeVisible();
+		await nextStep(canvas);
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Shelter" }),
+		).toHaveTextContent("Example Shelter: R100.00");
+		await expect(save).not.toHaveBeenCalled();
+	},
+};
+export const GuidedSearchAndBack: Story = {
+	render: () => (
+		<Workspace options={{ initial: emptyDraft, version: null, save }} />
+	),
+	play: async ({ canvas }) => {
+		const amount = canvas.getByRole("textbox", {
+			name: "Monthly total (rand)",
+		});
+		await userEvent.clear(amount);
+		await userEvent.type(amount, "150");
+		await nextStep(canvas);
+		await waitFor(() =>
+			expect(
+				canvas.getByRole("heading", { name: "Who would you like to support?" }),
+			).toHaveFocus(),
+		);
+		const search = canvas.getByRole("textbox", {
+			name: "Search organisations",
+		});
+		await userEvent.type(search, "Garden");
+		await userEvent.click(canvas.getByRole("button", { name: "Search" }));
+		await expect(
+			canvas.queryByRole("button", { name: "Add Example Orchard" }),
+		).not.toBeInTheDocument();
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Add Example Garden" }),
+		);
+		await userEvent.clear(search);
+		await userEvent.click(canvas.getByRole("button", { name: "Search" }));
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Add Example Orchard" }),
+		);
+		await nextStep(canvas);
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Garden (%)" }),
+		).toHaveValue("50.00");
+		await userEvent.click(canvas.getByRole("button", { name: "Amount" }));
+		await expect(
+			canvas.getByRole("textbox", { name: "Monthly total (rand)" }),
+		).toHaveValue("150");
+		await reviewFromAmount(canvas);
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Garden" }),
+		).toHaveTextContent("Example Garden: R75.00");
 	},
 };
 export const DesignGuest: Story = {
@@ -482,12 +623,6 @@ function Workspace({
 					aria-label="Choose ready organisations"
 					className="flex flex-col gap-4"
 				>
-					<div className="flex flex-col gap-1">
-						<h2 className="text-lg font-semibold">Add ready organisations</h2>
-						<p className="text-sm text-muted-foreground">
-							Find an organisation and add it to your mix.
-						</p>
-					</div>
 					<CatalogueSearch onSearch={setSearch} />
 					<editor.form.Subscribe selector={(s) => s}>
 						{(state) => (

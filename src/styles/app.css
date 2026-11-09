@@ -20,6 +20,12 @@
   }
 }
 
+.allocation-sector[aria-pressed="true"] .recharts-sector,
+.allocation-sector:focus-visible .recharts-sector {
+  stroke: var(--foreground);
+  stroke-width: var(--allocation-focus-stroke);
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Inter Variable', sans-serif;
@@ -112,6 +118,9 @@
   --chart-3: var(--nord7);
   --chart-4: var(--nord15);
   --chart-5: var(--nord14);
+  --allocation-hole: 62%;
+  --allocation-stroke: calc(var(--spacing) * 0.5);
+  --allocation-focus-stroke: var(--spacing);
   --radius: 0.625rem;
   --sidebar: var(--nord5);
   --sidebar-foreground: var(--nord0);

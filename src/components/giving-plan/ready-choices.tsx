@@ -29,12 +29,6 @@ export function ReadyChoices(actions: ChoiceActions) {
 			aria-label="Choose ready organisations"
 			className="flex flex-col gap-4"
 		>
-			<div className="flex flex-col gap-1">
-				<h2 className="text-lg font-semibold">Add ready organisations</h2>
-				<p className="text-sm text-muted-foreground">
-					Find an organisation and add it to your mix.
-				</p>
-			</div>
 			<fieldset disabled={actions.disabled}>
 				<CatalogueSearch
 					onSearch={(value) => {
