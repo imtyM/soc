@@ -10,6 +10,7 @@ import {
 import { FieldGroup, FieldLegend, FieldSet } from "~/components/ui/field";
 import { money } from "../../../convex/schema/giving_plan_math";
 import type { PlanDraft } from "./draft";
+import { ShareSlider } from "./share-slider";
 import type { usePlanEditor } from "./use-plan-editor";
 
 type Editor = ReturnType<typeof usePlanEditor>;
@@ -38,58 +39,70 @@ export function SelectedMix({
 				</Empty>
 			) : (
 				<FieldGroup className="gap-0">
+					<p className="pb-4 text-xs text-muted-foreground">
+						Drag to adjust. Type for precise percentages.
+					</p>
 					{selections.map((selection, i) => (
-						<div
+						<editor.form.AppField
 							key={selection.organisationId}
-							className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-4 first:pt-0 last:border-0 last:pb-0"
-						>
-							<div className="flex min-w-0 flex-col gap-1">
-								<Button
-									type="button"
-									variant="ghost"
-									className="h-auto justify-start whitespace-normal px-0 text-left"
-									aria-label={`Inspect ${selection.name}`}
-									onClick={() => onInspect(selection.organisationId)}
-								>
-									{selection.name}:{" "}
-									{typeof amounts[i] === "number" ? money(amounts[i]) : "—"}
-								</Button>
-								{selection.isSynthetic && (
-									<p className="text-xs text-muted-foreground">
-										Synthetic example · not a real recipient
-									</p>
-								)}
-							</div>
-							<div className="flex items-center gap-2">
-								<div className="w-20">
-									<editor.form.AppField
-										name={`selections[${i}].percentage`}
-										children={(field) => (
+							name={`selections[${i}].percentage`}
+							children={(field) => (
+								<div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border py-4 first:pt-0 last:border-0 last:pb-0">
+									<div className="flex min-w-0 flex-col gap-1">
+										<Button
+											type="button"
+											variant="ghost"
+											className="h-auto justify-start whitespace-normal px-0 text-left"
+											aria-label={`Inspect ${selection.name}`}
+											onClick={() => onInspect(selection.organisationId)}
+										>
+											{selection.name}:{" "}
+											{typeof amounts[i] === "number" ? money(amounts[i]) : "—"}
+										</Button>
+										{selection.isSynthetic && (
+											<p className="text-xs text-muted-foreground">
+												Synthetic example · not a real recipient
+											</p>
+										)}
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-20">
 											<field.FormInput
 												label={`Share for ${selection.name} (%)`}
 												labelVisuallyHidden
 												inputMode="decimal"
 											/>
+										</div>
+										<span
+											aria-hidden="true"
+											className="text-sm text-muted-foreground"
+										>
+											%
+										</span>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											aria-label={`Remove ${selection.name}`}
+											onClick={() => editor.remove(selection)}
+										>
+											<MinusIcon />
+										</Button>
+									</div>
+									<editor.form.Subscribe selector={(s) => s.isSubmitting}>
+										{(pending) => (
+											<ShareSlider
+												name={selection.name}
+												value={field.state.value}
+												onChange={field.handleChange}
+												disabled={pending}
+												onInspect={() => onInspect(selection.organisationId)}
+											/>
 										)}
-									/>
+									</editor.form.Subscribe>
 								</div>
-								<span
-									aria-hidden="true"
-									className="text-sm text-muted-foreground"
-								>
-									%
-								</span>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									aria-label={`Remove ${selection.name}`}
-									onClick={() => editor.remove(selection)}
-								>
-									<MinusIcon />
-								</Button>
-							</div>
-						</div>
+							)}
+						/>
 					))}
 				</FieldGroup>
 			)}

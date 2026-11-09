@@ -547,6 +547,96 @@ export const GuidedSearchAndBack: Story = {
 		).toHaveTextContent("Example Garden: R75.00");
 	},
 };
+export const SliderKeyboardAndPrecision: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const slider = () =>
+			canvas.getByRole("slider", { name: "Adjust share for Example Orchard" });
+		const input = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await expect(slider()).toHaveAttribute("aria-valuenow", "50");
+		slider().focus();
+		await userEvent.keyboard("{ArrowLeft}");
+		await expect(input).toHaveValue("49.99");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
+		).toHaveValue("30.00");
+		await userEvent.keyboard("{PageDown}");
+		await expect(input).toHaveValue("48.99");
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("—");
+		await userEvent.clear(input);
+		await userEvent.type(input, "25.75");
+		await expect(slider()).toHaveAttribute("aria-valuenow", "25.75");
+		slider().focus();
+		await userEvent.keyboard("{Home}");
+		await expect(input).toHaveValue("0.00");
+		await userEvent.keyboard("{End}");
+		await expect(input).toHaveValue("100.00");
+		await expect(canvas.getByText("Check your shares")).toBeVisible();
+		await userEvent.clear(input);
+		await userEvent.type(input, "invalid");
+		await expect(
+			canvas.queryByRole("slider", {
+				name: "Adjust share for Example Orchard",
+			}),
+		).not.toBeInTheDocument();
+		await expect(
+			canvas.getByText("Enter a percentage from 0 to 100 to use the slider."),
+		).toBeVisible();
+		await userEvent.clear(input);
+		await userEvent.type(input, "12.34");
+		await expect(slider()).toHaveAttribute("aria-valuenow", "12.34");
+		await expect(save).not.toHaveBeenCalled();
+	},
+};
+export const SliderWithoutTyping: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		for (const [name, key, count] of [
+			["Orchard", "ArrowLeft", 10],
+			["School", "ArrowRight", 5],
+			["Shelter", "ArrowRight", 5],
+		] as const) {
+			canvas
+				.getByRole("slider", { name: `Adjust share for Example ${name}` })
+				.focus();
+			await userEvent.keyboard(`{Shift>}{${key}>${count}/}{/Shift}`);
+		}
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
+		).toHaveValue("40.00");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
+		).toHaveValue("35.00");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Shelter (%)" }),
+		).toHaveValue("25.00");
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("R40.00");
+		await nextStep(canvas);
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Save giving plan" }),
+		);
+		await waitFor(() =>
+			expect(save).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					monthlyAmountMinor: 10000,
+					shares: [
+						{ organisationId: entries[0].organisationId, units: 4000 },
+						{ organisationId: entries[1].organisationId, units: 3500 },
+						{ organisationId: entries[2].organisationId, units: 2500 },
+					],
+				}),
+			),
+		);
+	},
+};
 export const DesignGuest: Story = {
 	render: () => (
 		<Workspace
