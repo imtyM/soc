@@ -16,6 +16,10 @@ export interface FormInputProps {
 	autoComplete?: string;
 	inputMode?: React.ComponentProps<"input">["inputMode"];
 	labelVisuallyHidden?: boolean;
+	readOnly?: boolean;
+	/** Replace the default field update when several values must change atomically. */
+	onValueChange?: (value: string) => void;
+	onBlur?: () => void;
 	/**
 	 * Whether to hide the error message below the field
 	 * @default false
@@ -53,6 +57,9 @@ export function FormInput({
 	autoComplete,
 	inputMode,
 	labelVisuallyHidden = false,
+	readOnly,
+	onValueChange,
+	onBlur,
 	hideError = false,
 }: FormInputProps) {
 	const field = useFieldContext<string>();
@@ -70,8 +77,12 @@ export function FormInput({
 				id={field.name}
 				name={field.name}
 				value={field.state.value}
-				onBlur={field.handleBlur}
-				onChange={(e) => field.handleChange(e.target.value)}
+				readOnly={readOnly}
+				onBlur={() => {
+					field.handleBlur();
+					onBlur?.();
+				}}
+				onChange={(e) => (onValueChange ?? field.handleChange)(e.target.value)}
 				aria-invalid={isInvalid}
 				placeholder={placeholder}
 				type={type}

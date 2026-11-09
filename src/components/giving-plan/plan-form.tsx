@@ -36,7 +36,7 @@ const steps = [
 		id: 2,
 		label: "Mix",
 		title: "Make the mix yours",
-		description: "Adjust each share until your mix adds up to 100%.",
+		description: "Adjust a share. The rest balance automatically.",
 	},
 	{
 		id: 3,

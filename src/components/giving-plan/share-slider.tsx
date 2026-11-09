@@ -11,12 +11,14 @@ export function ShareSlider({
 	disabled,
 	onChange,
 	onInspect,
+	onFinish,
 }: {
 	name: string;
 	value: string;
 	disabled: boolean;
 	onChange: (value: string) => void;
 	onInspect: () => void;
+	onFinish: () => void;
 }) {
 	const units = parsePercent(value);
 	return (
@@ -34,6 +36,11 @@ export function ShareSlider({
 					largeStep={1}
 					disabled={disabled}
 					onFocus={onInspect}
+					onBlur={onFinish}
+					onValueCommitted={(_value, details) => {
+						// Keyboard edits share a baseline until blur; pointer edits until release.
+						if (details.reason !== "keyboard") onFinish();
+					}}
 					onValueChange={(next) => {
 						const percentage = typeof next === "number" ? next : next[0];
 						if (!Number.isFinite(percentage)) return;

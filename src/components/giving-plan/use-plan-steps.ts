@@ -22,6 +22,8 @@ export function usePlanSteps(editor: ReturnType<typeof usePlanEditor>) {
 	}, [step]);
 	async function go(target: PlanStep) {
 		if (editor.form.state.isSubmitting) return;
+		// Native Enter can unmount an input without firing its blur handler.
+		editor.finishShareEdit();
 		setFeedback(null);
 		if (target > step) {
 			const draft = editor.form.state.values;

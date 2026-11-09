@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAppForm } from "~/components/form";
 import {
 	GENERIC_ERROR_MESSAGE,
@@ -10,6 +10,7 @@ import {
 	parsePercent,
 	SHARE_TOTAL,
 } from "../../../convex/schema/giving_plan_math";
+import { balanceShares } from "./balance-shares";
 import {
 	formSchema,
 	intent,
@@ -35,6 +36,9 @@ export function usePlanEditor({
 	persist,
 	initiallyUnsaved = false,
 }: EditorOptions) {
+	const editing = useRef<{ id: string; baseline: PlanSelection[] } | null>(
+		null,
+	);
 	const [defaults, setDefaults] = useState(initial);
 	const [saved, setSaved] = useState(
 		!initiallyUnsaved && initialVersion !== null,
@@ -94,11 +98,36 @@ export function usePlanEditor({
 				"Tab storage is unavailable. Enable storage and retry before sign-in.",
 			);
 	}
+	function finishShareEdit() {
+		editing.current = null;
+	}
+	function editShare(id: string, value: string) {
+		if (form.state.isSubmitting) return;
+		const current = form.state.values.selections;
+		if (!current.some((s) => s.organisationId === id)) return;
+		if (!editing.current || editing.current.id !== id)
+			editing.current = { id, baseline: current };
+		const balanced = balanceShares(
+			current,
+			editing.current.baseline,
+			id,
+			value,
+		);
+		// Keep blank/malformed text honest; never guess its meaning or fix another
+		// invalid recipient silently. A later valid edit can reuse the same ratios.
+		replace(
+			balanced ??
+				current.map((s) =>
+					s.organisationId === id ? { ...s, percentage: value } : s,
+				),
+		);
+	}
 	function changeSelection(
 		entry: Omit<PlanSelection, "percentage">,
 		remove = false,
 	) {
 		if (form.state.isSubmitting) return;
+		finishShareEdit();
 		const old = form.state.values.selections;
 		const present = old.some((s) => s.organisationId === entry.organisationId);
 		if (present !== remove) return;
@@ -142,6 +171,8 @@ export function usePlanEditor({
 		saved,
 		showAuth,
 		version,
+		editShare,
+		finishShareEdit,
 		add: (entry: Omit<PlanSelection, "percentage">) => changeSelection(entry),
 		remove: (entry: PlanSelection) => changeSelection(entry, true),
 	};

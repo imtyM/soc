@@ -40,7 +40,8 @@ export function SelectedMix({
 			) : (
 				<FieldGroup className="gap-0">
 					<p className="pb-4 text-xs text-muted-foreground">
-						Drag to adjust. Type for precise percentages.
+						Drag or type a share. The others balance automatically to keep 100%.
+						{selections.length === 1 && " One organisation receives 100%."}
 					</p>
 					{selections.map((selection, i) => (
 						<editor.form.AppField
@@ -71,6 +72,14 @@ export function SelectedMix({
 												label={`Share for ${selection.name} (%)`}
 												labelVisuallyHidden
 												inputMode="decimal"
+												readOnly={
+													selections.length === 1 &&
+													selection.percentage === "100.00"
+												}
+												onValueChange={(value) =>
+													editor.editShare(selection.organisationId, value)
+												}
+												onBlur={editor.finishShareEdit}
 											/>
 										</div>
 										<span
@@ -94,8 +103,15 @@ export function SelectedMix({
 											<ShareSlider
 												name={selection.name}
 												value={field.state.value}
-												onChange={field.handleChange}
-												disabled={pending}
+												onChange={(value) =>
+													editor.editShare(selection.organisationId, value)
+												}
+												onFinish={editor.finishShareEdit}
+												disabled={
+													pending ||
+													(selections.length === 1 &&
+														selection.percentage === "100.00")
+												}
 												onInspect={() => onInspect(selection.organisationId)}
 											/>
 										)}

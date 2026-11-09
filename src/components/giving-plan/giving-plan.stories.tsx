@@ -18,6 +18,7 @@ import {
 	persistGuestDraft,
 } from "./draft";
 import { GivingPlanLayout } from "./page-layout";
+import { PlanAllocation } from "./plan-allocation";
 import { PlanError } from "./plan-error";
 import { PlanForm } from "./plan-form";
 import { AvailableOrganisations } from "./ready-choices";
@@ -96,17 +97,15 @@ export const BuildAdjustAndSave: Story = {
 			canvas.getByRole("button", { name: "Added Example Orchard" }),
 		).toBeDisabled();
 		await nextStep(canvas);
-		for (let i = 0; i < 3; i++) {
-			const input = canvas.getByRole("textbox", {
-				name: `Share for ${entries[i].name} (%)`,
-			});
-			await userEvent.clear(input);
-			await userEvent.type(input, ["50", "30", "20"][i]);
-		}
+		const share = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await userEvent.clear(share);
+		await userEvent.type(share, "50");
 		const preview = canvas.getByRole("region", { name: "Allocation preview" });
 		await expect(preview).toHaveTextContent("Example Orchard: R50.00");
-		await expect(preview).toHaveTextContent("Example School: R30.00");
-		await expect(preview).toHaveTextContent("Example Shelter: R20.00");
+		await expect(preview).toHaveTextContent("Example School: R25.00");
+		await expect(preview).toHaveTextContent("Example Shelter: R25.00");
 		await nextStep(canvas);
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
@@ -182,19 +181,11 @@ export const ProportionalEdits: Story = {
 		await expect(
 			canvas.getByRole("region", { name: "Allocation preview" }),
 		).toHaveTextContent("Example Orchard: R50.01");
-		for (const [name, percentage] of [
-			["Orchard", "0"],
-			["School", "0"],
-			["Shelter", "100"],
-		]) {
-			await userEvent.clear(
-				canvas.getByRole("textbox", { name: `Share for Example ${name} (%)` }),
-			);
-			await userEvent.type(
-				canvas.getByRole("textbox", { name: `Share for Example ${name} (%)` }),
-				percentage,
-			);
-		}
+		const shelter = canvas.getByRole("textbox", {
+			name: "Share for Example Shelter (%)",
+		});
+		await userEvent.clear(shelter);
+		await userEvent.type(shelter, "100");
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Remove Example Shelter" }),
 		);
@@ -462,38 +453,31 @@ export const GuidedMixValidation: Story = {
 		}
 		await share("School", "20");
 		await expect(
-			await canvas.findByRole("button", { name: "Unallocated: 10.00%" }),
-		).toBeVisible();
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("R57.14");
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Shelter" }),
+		).toHaveTextContent("R22.86");
+		await userEvent.clear(field("School"));
+		await expect(canvas.getByText("Check your shares")).toBeVisible();
 		await expect(
 			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
-		).toHaveTextContent("Example Orchard: —");
+		).toHaveTextContent("—");
 		// Even a previously visited Review step cannot bypass validation.
 		await userEvent.click(canvas.getByRole("button", { name: "Review" }));
 		await nextStep(canvas);
 		await expect(
 			canvas.getByRole("heading", { name: "Make the mix yours" }),
 		).toBeVisible();
-		for (const name of ["Orchard", "School", "Shelter"]) await share(name, "0");
-		await expect(
-			await canvas.findByRole("button", { name: "Unallocated: 100.00%" }),
-		).toBeVisible();
+		await share("School", "invalid");
 		await nextStep(canvas);
 		await expect(save).not.toHaveBeenCalled();
-		await share("Orchard", "100");
-		await share("School", "20");
-		await expect(canvas.getByText("Check your shares")).toBeVisible();
-		await expect(
-			canvas.queryByRole("button", { name: /^Example Orchard: 100/ }),
-		).not.toBeInTheDocument();
-		await nextStep(canvas);
-		await expect(save).not.toHaveBeenCalled();
-		await share("Orchard", "0");
 		await share("School", "0");
 		await share("Shelter", "100");
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
 		);
-		await expect(canvas.getByText("0% · R0.00")).toBeVisible();
+		await expect(canvas.getByText("0.00% · R0.00")).toBeVisible();
 		await nextStep(canvas);
 		await expect(
 			canvas.getByRole("button", { name: "Inspect Example Shelter" }),
@@ -562,12 +546,12 @@ export const SliderKeyboardAndPrecision: Story = {
 		await expect(input).toHaveValue("49.99");
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
-		).toHaveValue("30.00");
+		).toHaveValue("30.01");
 		await userEvent.keyboard("{PageDown}");
 		await expect(input).toHaveValue("48.99");
 		await expect(
 			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
-		).toHaveTextContent("—");
+		).toHaveTextContent("R48.99");
 		await userEvent.clear(input);
 		await userEvent.type(input, "25.75");
 		await expect(slider()).toHaveAttribute("aria-valuenow", "25.75");
@@ -576,7 +560,9 @@ export const SliderKeyboardAndPrecision: Story = {
 		await expect(input).toHaveValue("0.00");
 		await userEvent.keyboard("{End}");
 		await expect(input).toHaveValue("100.00");
-		await expect(canvas.getByText("Check your shares")).toBeVisible();
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("R100.00");
 		await userEvent.clear(input);
 		await userEvent.type(input, "invalid");
 		await expect(
@@ -597,28 +583,24 @@ export const SliderWithoutTyping: Story = {
 	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
 	play: async ({ canvas }) => {
 		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
-		for (const [name, key, count] of [
-			["Orchard", "ArrowLeft", 10],
-			["School", "ArrowRight", 5],
-			["Shelter", "ArrowRight", 5],
-		] as const) {
-			canvas
-				.getByRole("slider", { name: `Adjust share for Example ${name}` })
-				.focus();
-			await userEvent.keyboard(`{Shift>}{${key}>${count}/}{/Shift}`);
-		}
+		canvas
+			.getByRole("slider", { name: "Adjust share for Example Orchard" })
+			.focus();
+		await userEvent.keyboard("{Shift>}{ArrowRight>10/}{/Shift}");
+		// The same focus/gesture must retain the 30:20 ratio through 100%.
+		await userEvent.keyboard("{End}{Shift>}{ArrowLeft>40/}{/Shift}");
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
-		).toHaveValue("40.00");
+		).toHaveValue("60.00");
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
-		).toHaveValue("35.00");
+		).toHaveValue("24.00");
 		await expect(
 			canvas.getByRole("textbox", { name: "Share for Example Shelter (%)" }),
-		).toHaveValue("25.00");
+		).toHaveValue("16.00");
 		await expect(
 			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
-		).toHaveTextContent("R40.00");
+		).toHaveTextContent("R60.00");
 		await nextStep(canvas);
 		await userEvent.click(
 			canvas.getByRole("button", { name: "Save giving plan" }),
@@ -628,13 +610,174 @@ export const SliderWithoutTyping: Story = {
 				expect.objectContaining({
 					monthlyAmountMinor: 10000,
 					shares: [
-						{ organisationId: entries[0].organisationId, units: 4000 },
-						{ organisationId: entries[1].organisationId, units: 3500 },
-						{ organisationId: entries[2].organisationId, units: 2500 },
+						{ organisationId: entries[0].organisationId, units: 6000 },
+						{ organisationId: entries[1].organisationId, units: 2400 },
+						{ organisationId: entries[2].organisationId, units: 1600 },
 					],
 				}),
 			),
 		);
+	},
+};
+export const NumericAutomaticBalance: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const field = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await userEvent.clear(field);
+		await userEvent.type(field, "60");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
+		).toHaveValue("24.00");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Shelter (%)" }),
+		).toHaveValue("16.00");
+		await nextStep(canvas);
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Save giving plan" }),
+		);
+		await waitFor(() =>
+			expect(save).toHaveBeenLastCalledWith({
+				monthlyAmountMinor: 10000,
+				expectedVersion: 1,
+				shares: entries.slice(0, 3).map((e, i) => ({
+					organisationId: e.organisationId,
+					units: [6000, 2400, 1600][i],
+				})),
+			}),
+		);
+	},
+};
+export const ZeroOtherShares: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: {
+					...chosen,
+					selections: chosen.selections.map((s, i) => ({
+						...s,
+						percentage: i === 0 ? "100.00" : "0.00",
+					})),
+				},
+				version: 1,
+				save,
+			}}
+		/>
+	),
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const field = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await userEvent.clear(field);
+		await userEvent.type(field, "60");
+		for (const name of ["School", "Shelter"])
+			await expect(
+				canvas.getByRole("textbox", { name: `Share for Example ${name} (%)` }),
+			).toHaveValue("20.00");
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("R60.00");
+		await nextStep(canvas);
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Save giving plan" }),
+		);
+		await expect(save).toHaveBeenCalledTimes(1);
+	},
+};
+export const SingleOrganisation: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: {
+					...chosen,
+					selections: [{ ...chosen.selections[0], percentage: "100.00" }],
+				},
+				version: 1,
+				save,
+			}}
+		/>
+	),
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		await expect(
+			canvas.getByRole("slider", { name: "Adjust share for Example Orchard" }),
+		).toBeDisabled();
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Orchard (%)" }),
+		).toHaveAttribute("readonly");
+		await expect(
+			canvas.getByRole("button", { name: "Remove Example Orchard" }),
+		).toBeEnabled();
+	},
+};
+export const LegacySingleRepair: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: { ...chosen, selections: [chosen.selections[0]] },
+				version: null,
+				save,
+			}}
+		/>
+	),
+	play: async ({ canvas }) => {
+		await nextStep(canvas);
+		await nextStep(canvas);
+		const field = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await expect(field).not.toHaveAttribute("readonly");
+		await userEvent.clear(field);
+		await userEvent.type(field, "60");
+		await expect(field).toHaveValue("100.00");
+		await expect(field).toHaveAttribute("readonly");
+		await nextStep(canvas);
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Save giving plan" }),
+		);
+		await waitFor(() =>
+			expect(save).toHaveBeenLastCalledWith({
+				monthlyAmountMinor: 10000,
+				expectedVersion: null,
+				shares: [{ organisationId: entries[0].organisationId, units: 10000 }],
+			}),
+		);
+	},
+};
+// Old/incomplete drafts remain honest. Normal edits can no longer manufacture
+// these invalid totals, but a retained legacy draft still must not look saved.
+export const LegacyInvalidMix: Story = {
+	render: () => <LegacyMix values={["50", "20", "20"]} />,
+	play: async ({ canvas }) => {
+		await expect(
+			await canvas.findByRole("button", { name: "Unallocated: 10.00%" }),
+		).toBeVisible();
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("—");
+	},
+};
+export const LegacyAllZeroMix: Story = {
+	render: () => <LegacyMix values={["0", "0", "0"]} />,
+	play: async ({ canvas }) => {
+		await expect(
+			await canvas.findByRole("button", { name: "Unallocated: 100.00%" }),
+		).toBeVisible();
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("—");
+	},
+};
+export const LegacyOverAllocatedMix: Story = {
+	render: () => <LegacyMix values={["100", "20", "0"]} />,
+	play: async ({ canvas }) => {
+		await expect(canvas.getByText("Check your shares")).toBeVisible();
+		await expect(
+			canvas.queryByRole("button", { name: /^Example Orchard: 100/ }),
+		).not.toBeInTheDocument();
 	},
 };
 export const DesignGuest: Story = {
@@ -693,6 +836,21 @@ export const QueryFailureAndRetry: Story = {
 // PhoneAuthContent's success callback and an ACTUAL document reload (not a remount).
 export const AuthReload: Story = { render: () => <ReloadFixture /> };
 
+function LegacyMix({ values }: { values: string[] }) {
+	return (
+		<GivingPlanLayout>
+			<PlanAllocation
+				draft={{
+					...chosen,
+					selections: chosen.selections.map((s, i) => ({
+						...s,
+						percentage: values[i],
+					})),
+				}}
+			/>
+		</GivingPlanLayout>
+	);
+}
 function Workspace({
 	options,
 	phone,
