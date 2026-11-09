@@ -12,6 +12,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PlanLoading } from ".";
 import {
+	draftSchema,
 	emptyDraft,
 	GUEST_DRAFT_KEY,
 	type PlanDraft,
@@ -821,6 +822,46 @@ export const DesignLongContent: Story = {
 			}}
 		/>
 	),
+};
+export const DesignManyRecipients: Story = {
+	render: () => (
+		<Workspace
+			options={{
+				initial: draftSchema.parse({
+					amount: "100.00",
+					selections: Array.from({ length: 16 }, (_, i) => ({
+						organisationId: `synthetic-many-${i}`,
+						name: `Example community organisation ${i + 1}`,
+						isSynthetic: true,
+						percentage: "6.25",
+					})),
+				}),
+				version: 1,
+				save,
+			}}
+		/>
+	),
+};
+export const MixPreviewFollowsControl: Story = {
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const slider = canvas.getByRole("slider", {
+			name: "Adjust share for Example Shelter",
+		});
+		slider.focus();
+		await userEvent.keyboard("{PageUp}");
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example Shelter (%)" }),
+		).toHaveValue("21.00");
+		await expect(canvas.getByText("21.00% · R21.00")).toBeVisible();
+		await nextStep(canvas);
+		await expect(
+			canvas.getByRole("heading", {
+				name: "Your month of giving, at a glance",
+			}),
+		).toBeVisible();
+	},
 };
 export const Loading: Story = {};
 export const QueryFailureAndRetry: Story = {

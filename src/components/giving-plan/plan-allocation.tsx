@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pie, PieChart, Sector } from "recharts";
 import { Button } from "~/components/ui/button";
 import { ChartContainer } from "~/components/ui/chart";
+import { cn } from "~/lib/utils";
 import { decimalMinor, money } from "../../../convex/schema/giving_plan_math";
 import type { PlanDraft } from "./draft";
 import { useAllocationChart } from "./use-allocation-chart";
@@ -22,12 +23,26 @@ export function PlanAllocation({
 	return (
 		<section
 			aria-label="Allocation preview"
-			className="grid min-w-0 gap-6 md:grid-cols-2"
+			className={cn(
+				"grid min-w-0 gap-6 md:grid-cols-2",
+				children && "flex flex-col md:grid",
+			)}
 		>
-			<div className="flex min-w-0 flex-col gap-4">
+			<div
+				data-slot="allocation-preview"
+				className={cn(
+					"flex min-w-0 flex-col gap-4",
+					children &&
+						"sticky top-0 z-10 flex-row items-center gap-3 border-b border-border bg-card py-3 md:static md:z-auto md:flex-col md:items-stretch md:gap-4 md:border-0 md:py-0",
+				)}
+			>
 				<div
 					ref={chart.chartRef}
-					className="relative mx-auto size-48 sm:size-64"
+					className={cn(
+						"relative mx-auto size-48 sm:size-64",
+						children &&
+							"mx-0 size-28 shrink-0 sm:size-28 md:mx-auto md:size-64",
+					)}
 				>
 					{chart.hole && chart.drawable && (
 						<ChartContainer
@@ -84,39 +99,89 @@ export function PlanAllocation({
 						</ChartContainer>
 					)}
 					<div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
-						<p className="text-xs text-muted-foreground">
+						<p
+							className={cn(
+								"text-xs text-muted-foreground",
+								children && "sr-only md:not-sr-only",
+							)}
+						>
 							{chart.drawable ? "Monthly total" : "Check your shares"}
 						</p>
-						<p className="w-24 break-all text-xl font-semibold tracking-tight tabular-nums sm:w-32 sm:text-2xl">
+						<p
+							className={cn(
+								"w-24 break-all text-xl font-semibold tracking-tight tabular-nums sm:w-32 sm:text-2xl",
+								children &&
+									"w-20 text-sm sm:w-20 sm:text-sm md:w-32 md:text-2xl",
+							)}
+						>
 							{chart.amount === null ? "—" : money(chart.amount)}
 						</p>
 						<p className="text-xs text-muted-foreground">
-							{decimalMinor(chart.total).replace(/\.00$/, "")}% allocated
+							{decimalMinor(chart.total).replace(/\.00$/, "")}%
+							<span className={cn(children && "sr-only md:not-sr-only")}>
+								{" "}
+								allocated
+							</span>
 						</p>
 					</div>
 				</div>
-				{chart.active && (
-					<div className="flex min-h-12 flex-col items-center gap-1 text-center">
-						<p className="max-w-full break-words text-sm font-medium">
-							{chart.active.name}
+				<div
+					className={cn(
+						"flex min-w-0 flex-col gap-4",
+						children && "flex-1 gap-1 md:flex-none md:gap-4",
+					)}
+				>
+					{chart.active && (
+						<div
+							className={cn(
+								"flex min-h-12 flex-col items-center gap-1 text-center",
+								children &&
+									"items-start text-left md:items-center md:text-center",
+							)}
+						>
+							<p
+								className={cn(
+									"max-w-full break-words text-sm font-medium",
+									children && "line-clamp-2 md:line-clamp-none",
+								)}
+							>
+								{chart.active.name}
+							</p>
+							<p className="break-words text-sm tabular-nums">
+								{chart.active.percentage}% ·{" "}
+								{chart.active.amount === null
+									? "Exact amount after a valid 100% mix"
+									: money(chart.active.amount)}
+							</p>
+						</div>
+					)}
+					{!chart.drawable && (
+						<p className="text-sm text-destructive">
+							<span className={cn(children && "hidden md:inline")}>
+								Shares must total 100%, with each percentage between 0 and 100.
+								Exact allocations are unavailable until the mix is valid.
+							</span>
+							{children && (
+								<span className="md:hidden">
+									Check your shares. Exact amounts are unavailable.
+								</span>
+							)}
 						</p>
-						<p className="text-sm tabular-nums">
-							{chart.active.percentage}% ·{" "}
-							{chart.active.amount === null
-								? "Exact amount after a valid 100% mix"
-								: money(chart.active.amount)}
-						</p>
-					</div>
-				)}
-				{!chart.drawable && (
-					<p className="text-sm text-destructive">
-						Shares must total 100%, with each percentage between 0 and 100.
-						Exact allocations are unavailable until the mix is valid.
+					)}
+					<p
+						className={cn(
+							"text-center text-xs text-muted-foreground",
+							children && "text-left md:text-center",
+						)}
+					>
+						<span className={cn(children && "hidden md:inline")}>
+							Hover, focus or tap to inspect the mix.
+						</span>
+						{children && (
+							<span className="md:hidden">Tap to inspect the mix.</span>
+						)}
 					</p>
-				)}
-				<p className="text-center text-xs text-muted-foreground">
-					Hover, focus or tap to inspect the mix.
-				</p>
+				</div>
 			</div>
 			{children ? (
 				children(chart)

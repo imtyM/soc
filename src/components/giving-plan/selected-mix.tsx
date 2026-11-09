@@ -26,7 +26,7 @@ export function SelectedMix({
 	onInspect: (id: string) => void;
 }) {
 	return (
-		<FieldSet>
+		<FieldSet className="[&_button]:scroll-mt-40 [&_input]:scroll-mt-40 md:[&_button]:scroll-mt-0 md:[&_input]:scroll-mt-0">
 			<FieldLegend className="sr-only">Recipient mix</FieldLegend>
 			{!selections.length ? (
 				<Empty className="border p-6">

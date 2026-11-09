@@ -84,7 +84,7 @@ export function PlanForm({
 					</nav>
 				)}
 			</editor.form.Subscribe>
-			<Card>
+			<Card className="overflow-clip md:overflow-hidden">
 				<CardHeader>
 					<h2
 						ref={wizard.headingRef}
