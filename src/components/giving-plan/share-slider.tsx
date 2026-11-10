@@ -22,7 +22,7 @@ export function ShareSlider({
 }) {
 	const units = parsePercent(value);
 	return (
-		<Field className="col-span-2" data-disabled={disabled}>
+		<Field className="md:col-span-2" data-disabled={disabled}>
 			{units === null ? (
 				<p className="text-xs text-muted-foreground">
 					Enter a percentage from 0 to 100 to use the slider.

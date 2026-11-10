@@ -26,7 +26,7 @@ export function SelectedMix({
 	onInspect: (id: string) => void;
 }) {
 	return (
-		<FieldSet className="[&_button]:scroll-mt-40 [&_input]:scroll-mt-40 md:[&_button]:scroll-mt-0 md:[&_input]:scroll-mt-0">
+		<FieldSet className="[&_button]:scroll-mt-48 [&_input]:scroll-mt-48 md:[&_button]:scroll-mt-0 md:[&_input]:scroll-mt-0">
 			<FieldLegend className="sr-only">Recipient mix</FieldLegend>
 			{!selections.length ? (
 				<Empty className="border p-6">
@@ -48,7 +48,7 @@ export function SelectedMix({
 							key={selection.organisationId}
 							name={`selections[${i}].percentage`}
 							children={(field) => (
-								<div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border py-4 first:pt-0 last:border-0 last:pb-0">
+								<div className="grid grid-cols-1 items-center gap-x-3 gap-y-2 border-b border-border py-4 first:pt-0 last:border-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_auto] md:gap-y-0">
 									<div className="flex min-w-0 flex-col gap-1">
 										<Button
 											type="button"
@@ -66,7 +66,7 @@ export function SelectedMix({
 											</p>
 										)}
 									</div>
-									<div className="flex items-center gap-2">
+									<div className="flex items-center justify-end gap-2">
 										<div className="w-20">
 											<field.FormInput
 												label={`Share for ${selection.name} (%)`}
@@ -76,9 +76,10 @@ export function SelectedMix({
 													selections.length === 1 &&
 													selection.percentage === "100.00"
 												}
-												onValueChange={(value) =>
-													editor.editShare(selection.organisationId, value)
-												}
+												onValueChange={(value) => {
+													onInspect(selection.organisationId);
+													editor.editShare(selection.organisationId, value);
+												}}
 												onBlur={editor.finishShareEdit}
 											/>
 										</div>

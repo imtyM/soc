@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { ChartContainer } from "~/components/ui/chart";
 import { cn } from "~/lib/utils";
 import { decimalMinor, money } from "../../../convex/schema/giving_plan_math";
+import { AllocationBar } from "./allocation-bar";
 import type { PlanDraft } from "./draft";
 import { useAllocationChart } from "./use-allocation-chart";
 
@@ -33,16 +34,14 @@ export function PlanAllocation({
 				className={cn(
 					"flex min-w-0 flex-col gap-4",
 					children &&
-						"sticky top-0 z-10 flex-row items-center gap-3 border-b border-border bg-card py-3 md:static md:z-auto md:flex-col md:items-stretch md:gap-4 md:border-0 md:py-0",
+						"sticky top-0 z-10 gap-3 border-b border-border bg-card py-2 md:static md:z-auto md:gap-4 md:border-0 md:py-0",
 				)}
 			>
+				<AllocationBar chart={chart} />
+				{/* Keep the desktop chart measurable, but out of mobile layout/focus. */}
 				<div
 					ref={chart.chartRef}
-					className={cn(
-						"relative mx-auto size-48 sm:size-64",
-						children &&
-							"mx-0 size-28 shrink-0 sm:size-28 md:mx-auto md:size-64",
-					)}
+					className="invisible absolute top-0 left-0 size-64 md:visible md:relative md:inset-auto md:mx-auto"
 				>
 					{chart.hole && chart.drawable && (
 						<ChartContainer
@@ -99,52 +98,27 @@ export function PlanAllocation({
 						</ChartContainer>
 					)}
 					<div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
-						<p
-							className={cn(
-								"text-xs text-muted-foreground",
-								children && "sr-only md:not-sr-only",
-							)}
-						>
+						<p className="text-xs text-muted-foreground">
 							{chart.drawable ? "Monthly total" : "Check your shares"}
 						</p>
-						<p
-							className={cn(
-								"w-24 break-all text-xl font-semibold tracking-tight tabular-nums sm:w-32 sm:text-2xl",
-								children &&
-									"w-20 text-sm sm:w-20 sm:text-sm md:w-32 md:text-2xl",
-							)}
-						>
+						<p className="w-32 break-all text-2xl font-semibold tracking-tight tabular-nums">
 							{chart.amount === null ? "—" : money(chart.amount)}
 						</p>
 						<p className="text-xs text-muted-foreground">
 							{decimalMinor(chart.total).replace(/\.00$/, "")}%
-							<span className={cn(children && "sr-only md:not-sr-only")}>
-								{" "}
-								allocated
-							</span>
+							<span> allocated</span>
 						</p>
 					</div>
 				</div>
 				<div
 					className={cn(
 						"flex min-w-0 flex-col gap-4",
-						children && "flex-1 gap-1 md:flex-none md:gap-4",
+						children && "gap-1 md:gap-4",
 					)}
 				>
 					{chart.active && (
-						<div
-							className={cn(
-								"flex min-h-12 flex-col items-center gap-1 text-center",
-								children &&
-									"items-start text-left md:items-center md:text-center",
-							)}
-						>
-							<p
-								className={cn(
-									"max-w-full break-words text-sm font-medium",
-									children && "line-clamp-2 md:line-clamp-none",
-								)}
-							>
+						<div className="flex min-h-12 flex-col items-start gap-1 text-left md:items-center md:text-center">
+							<p className="max-w-full break-words text-sm font-medium line-clamp-2 md:line-clamp-none">
 								{chart.active.name}
 							</p>
 							<p className="break-words text-sm tabular-nums">
@@ -157,28 +131,28 @@ export function PlanAllocation({
 					)}
 					{!chart.drawable && (
 						<p className="text-sm text-destructive">
-							<span className={cn(children && "hidden md:inline")}>
+							<span className="hidden md:inline">
 								Shares must total 100%, with each percentage between 0 and 100.
 								Exact allocations are unavailable until the mix is valid.
 							</span>
-							{children && (
-								<span className="md:hidden">
-									Check your shares. Exact amounts are unavailable.
-								</span>
-							)}
+							<span className="md:hidden">
+								Check your shares. Exact amounts are unavailable.
+							</span>
 						</p>
 					)}
 					<p
 						className={cn(
 							"text-center text-xs text-muted-foreground",
-							children && "text-left md:text-center",
+							children && "hidden md:block",
 						)}
 					>
-						<span className={cn(children && "hidden md:inline")}>
+						<span className="hidden md:inline">
 							Hover, focus or tap to inspect the mix.
 						</span>
-						{children && (
-							<span className="md:hidden">Tap to inspect the mix.</span>
+						{!children && (
+							<span className="md:hidden">
+								Tap a segment to inspect the mix.
+							</span>
 						)}
 					</p>
 				</div>

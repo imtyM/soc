@@ -863,6 +863,101 @@ export const MixPreviewFollowsControl: Story = {
 		).toBeVisible();
 	},
 };
+// addon-vitest applies this viewport before rendering, so the mobile bar (not
+// the hidden desktop SVG) is exercised by interaction and accessibility checks.
+export const MobileBarEditing: Story = {
+	globals: { viewport: { value: "mobile1" } },
+	render: () => <Workspace options={{ initial: chosen, version: 1, save }} />,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
+		const bar = canvas.getByRole("group", { name: "Monthly allocation bar" });
+		await expect(bar).toBeVisible();
+		const school = canvas.getByRole("button", {
+			name: "Example School: 30.00%, R30.00",
+		});
+		school.focus();
+		await userEvent.keyboard(" ");
+		await expect(school).toHaveAttribute("aria-pressed", "true");
+		await expect(canvas.getByText("30.00% · R30.00")).toBeVisible();
+		const field = canvas.getByRole("textbox", {
+			name: "Share for Example Orchard (%)",
+		});
+		await userEvent.clear(field);
+		await expect(bar.querySelectorAll("button")).toHaveLength(0);
+		await expect(
+			canvas.getByText("Check your shares. Exact amounts are unavailable."),
+		).toBeVisible();
+		await userEvent.type(field, "60");
+		await expect(canvas.getByText("60% · R60.00")).toBeVisible();
+		const orchard = canvas.getByRole("button", {
+			name: "Example Orchard: 60%, R60.00",
+		});
+		await expect(
+			orchard.getBoundingClientRect().width / bar.clientWidth,
+		).toBeCloseTo(0.6, 2);
+		await expect(
+			canvas.getByRole("textbox", { name: "Share for Example School (%)" }),
+		).toHaveValue("24.00");
+		const slider = canvas.getByRole("slider", {
+			name: "Adjust share for Example Orchard",
+		});
+		slider.focus();
+		await userEvent.keyboard("{End}{Shift>}{ArrowLeft>40/}{/Shift}");
+		await expect(
+			canvas
+				.getByRole("button", { name: "Example Orchard: 60.00%, R60.00" })
+				.getBoundingClientRect().width / bar.clientWidth,
+		).toBeCloseTo(0.6, 2);
+		await userEvent.clear(field);
+		await userEvent.type(field, "0.01");
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		);
+		await expect(canvas.getByText("0.01% · R0.01")).toBeVisible();
+		await expect(
+			canvas
+				.getByRole("button", { name: "Example Orchard: 0.01%, R0.01" })
+				.getBoundingClientRect().width,
+		).toBeLessThan(1);
+		await userEvent.clear(field);
+		await userEvent.type(field, "0");
+		await userEvent.click(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		);
+		await expect(canvas.getByText("0% · R0.00")).toBeVisible();
+		await expect(bar.querySelectorAll("button")).toHaveLength(2);
+		await nextStep(canvas);
+		await expect(
+			canvas.getByRole("group", { name: "Monthly allocation bar" }),
+		).toBeVisible();
+		await expect(save).not.toHaveBeenCalled();
+	},
+};
+export const MobileBarPartial: Story = {
+	...LegacyInvalidMix,
+	globals: { viewport: { value: "mobile1" } },
+};
+export const MobileBarAllZero: Story = {
+	...LegacyAllZeroMix,
+	globals: { viewport: { value: "mobile1" } },
+};
+export const MobileBarOverAllocated: Story = {
+	globals: { viewport: { value: "mobile1" } },
+	render: () => <LegacyMix values={["100", "20", "0"]} />,
+	play: async ({ canvas }) => {
+		await expect(
+			canvas
+				.getByRole("group", { name: "Monthly allocation bar" })
+				.querySelectorAll("button"),
+		).toHaveLength(0);
+		await expect(
+			canvas.getByText("Check your shares. Exact amounts are unavailable."),
+		).toBeVisible();
+		await expect(
+			canvas.getByRole("button", { name: "Inspect Example Orchard" }),
+		).toHaveTextContent("—");
+	},
+};
 export const Loading: Story = {};
 export const QueryFailureAndRetry: Story = {
 	render: () => <QueryRecovery />,
