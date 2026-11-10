@@ -872,6 +872,7 @@ export const MobileBarEditing: Story = {
 		await userEvent.click(canvas.getByRole("button", { name: "Edit mix" }));
 		const bar = canvas.getByRole("group", { name: "Monthly allocation bar" });
 		await expect(bar).toBeVisible();
+		await expect(bar.getBoundingClientRect().height).toBe(8);
 		const school = canvas.getByRole("button", {
 			name: "Example School: 30.00%, R30.00",
 		});

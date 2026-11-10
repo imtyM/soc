@@ -11,7 +11,7 @@ export function AllocationBar({ chart }: { chart: Chart }) {
 			<p className="break-words text-sm font-medium tabular-nums">
 				Monthly total · {chart.amount === null ? "—" : money(chart.amount)}
 			</p>
-			<fieldset className="flex h-12 w-full min-w-0 overflow-hidden rounded-md border border-control-border bg-secondary">
+			<fieldset className="flex h-2 w-full min-w-0 overflow-hidden rounded-md border border-control-border bg-secondary">
 				<legend className="sr-only">Monthly allocation bar</legend>
 				{chart.data
 					.filter((segment) => segment.units > 0)
@@ -21,7 +21,7 @@ export function AllocationBar({ chart }: { chart: Chart }) {
 							type="button"
 							aria-label={`${segment.name}: ${segment.percentage}%${segment.amount === null ? "" : `, ${money(segment.amount)}`}`}
 							aria-pressed={chart.active?.id === segment.id}
-							className="min-w-0 basis-0 cursor-pointer outline-none aria-pressed:ring-2 aria-pressed:ring-foreground aria-pressed:ring-inset focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset"
+							className="min-w-0 basis-0 cursor-pointer outline-none aria-pressed:ring-1 aria-pressed:ring-foreground aria-pressed:ring-inset focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset"
 							style={{ flexGrow: segment.units, backgroundColor: segment.fill }}
 							onMouseEnter={() => chart.setActiveId(segment.id)}
 							onFocus={() => chart.setActiveId(segment.id)}
