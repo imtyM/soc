@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppCatalogueRouteImport } from './routes/app.catalogue'
+import { Route as AppGivingPlanRouteImport } from './routes/app.giving-plan'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AppCatalogueRoute = AppCatalogueRouteImport.update({
   path: '/app/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppGivingPlanRoute = AppGivingPlanRouteImport.update({
+  id: '/app/giving-plan',
+  path: '/app/giving-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -32,30 +38,34 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app/catalogue': typeof AppCatalogueRoute
+  '/app/giving-plan': typeof AppGivingPlanRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/catalogue': typeof AppCatalogueRoute
+  '/app/giving-plan': typeof AppGivingPlanRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app/catalogue': typeof AppCatalogueRoute
+  '/app/giving-plan': typeof AppGivingPlanRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app/catalogue' | '/api/auth/$'
+  fullPaths: '/' | '/app/catalogue' | '/app/giving-plan' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app/catalogue' | '/api/auth/$'
-  id: '__root__' | '/' | '/app/catalogue' | '/api/auth/$'
+  to: '/' | '/app/catalogue' | '/app/giving-plan' | '/api/auth/$'
+  id: '__root__' | '/' | '/app/catalogue' | '/app/giving-plan' | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppCatalogueRoute: typeof AppCatalogueRoute
+  AppGivingPlanRoute: typeof AppGivingPlanRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/giving-plan': {
+      id: '/app/giving-plan'
+      path: '/app/giving-plan'
+      fullPath: '/app/giving-plan'
+      preLoaderRoute: typeof AppGivingPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppCatalogueRoute: AppCatalogueRoute,
+  AppGivingPlanRoute: AppGivingPlanRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

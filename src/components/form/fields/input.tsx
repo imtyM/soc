@@ -14,6 +14,12 @@ export interface FormInputProps {
 	placeholder?: string;
 	type?: string;
 	autoComplete?: string;
+	inputMode?: React.ComponentProps<"input">["inputMode"];
+	labelVisuallyHidden?: boolean;
+	readOnly?: boolean;
+	/** Replace the default field update when several values must change atomically. */
+	onValueChange?: (value: string) => void;
+	onBlur?: () => void;
 	/**
 	 * Whether to hide the error message below the field
 	 * @default false
@@ -49,6 +55,11 @@ export function FormInput({
 	placeholder,
 	type = "text",
 	autoComplete,
+	inputMode,
+	labelVisuallyHidden = false,
+	readOnly,
+	onValueChange,
+	onBlur,
 	hideError = false,
 }: FormInputProps) {
 	const field = useFieldContext<string>();
@@ -56,17 +67,27 @@ export function FormInput({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+			<FieldLabel
+				htmlFor={field.name}
+				className={labelVisuallyHidden ? "sr-only max-w-px" : undefined}
+			>
+				{label}
+			</FieldLabel>
 			<Input
 				id={field.name}
 				name={field.name}
 				value={field.state.value}
-				onBlur={field.handleBlur}
-				onChange={(e) => field.handleChange(e.target.value)}
+				readOnly={readOnly}
+				onBlur={() => {
+					field.handleBlur();
+					onBlur?.();
+				}}
+				onChange={(e) => (onValueChange ?? field.handleChange)(e.target.value)}
 				aria-invalid={isInvalid}
 				placeholder={placeholder}
 				type={type}
 				autoComplete={autoComplete}
+				inputMode={inputMode}
 			/>
 			{description && <FieldDescription>{description}</FieldDescription>}
 			{isInvalid && !hideError && (

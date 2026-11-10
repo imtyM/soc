@@ -1,6 +1,4 @@
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
 	Empty,
 	EmptyDescription,
@@ -38,26 +36,18 @@ export function CatalogueEntries({
 			</Empty>
 		);
 	return (
-		<ul className="flex flex-col gap-4">
+		<ul className="flex flex-col divide-y divide-border">
 			{entries.map((entry) => (
-				<li key={entry._id}>
-					<Card>
-						<CardHeader>
-							<CardTitle role="heading" aria-level={3}>
-								{entry.name}
-							</CardTitle>
-							{entry.isSynthetic ? (
-								<Badge variant="secondary">
-									Synthetic example · not a real recipient
-								</Badge>
-							) : null}
-						</CardHeader>
-						<CardContent>
-							<p className="whitespace-pre-wrap break-words text-sm">
-								{entry.description}
-							</p>
-						</CardContent>
-					</Card>
+				<li key={entry._id} className="flex flex-col gap-2 py-5">
+					<h3 className="break-words text-base font-medium">{entry.name}</h3>
+					<p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+						{entry.description}
+					</p>
+					{entry.isSynthetic && (
+						<p className="text-xs text-muted-foreground">
+							Synthetic example · not a real recipient
+						</p>
+					)}
 				</li>
 			))}
 		</ul>
