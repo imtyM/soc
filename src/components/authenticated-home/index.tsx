@@ -2,16 +2,27 @@ import { convexQuery } from "@convex-dev/react-query";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { AccountAccess } from "~/components/account-access";
+import { AccountIdentity } from "~/components/account-entry/account-identity";
 import { TodoList } from "~/components/todos/todo-list";
 import { api } from "../../../convex/_generated/api";
 
-export function AuthenticatedHome() {
+export function AuthenticatedHome({
+	accountActions,
+}: {
+	accountActions: ReactNode;
+}) {
 	const { data: user } = useSuspenseQuery(
 		convexQuery(api.auth.getCurrentUser, {}),
 	);
 
 	return (
-		<AuthenticatedHomeContent name={user?.name} phoneNumber={user?.phoneNumber}>
+		<AuthenticatedHomeContent
+			identity={
+				<AccountIdentity phoneNumber={user?.phoneNumber}>
+					{accountActions}
+				</AccountIdentity>
+			}
+		>
 			<AccountAccess />
 			<TodoList />
 		</AuthenticatedHomeContent>
@@ -20,16 +31,18 @@ export function AuthenticatedHome() {
 
 export function AuthenticatedHomeContent({
 	children,
+	identity,
 	name,
 	phoneNumber,
 }: {
 	children: ReactNode;
+	identity?: ReactNode;
 	name?: string | null;
 	phoneNumber?: string | null;
 }) {
 	return (
 		<div className="flex flex-col gap-8">
-			<CurrentUser name={name} phoneNumber={phoneNumber} />
+			{identity ?? <CurrentUser name={name} phoneNumber={phoneNumber} />}
 			{children}
 		</div>
 	);

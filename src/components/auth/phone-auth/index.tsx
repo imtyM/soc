@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { phoneAuthClient } from "~/lib/auth-client";
 import { OtpForm } from "./otp-form";
 import { PhoneNumberForm } from "./phone-number-form";
-import type { PhoneAuthActions } from "./use-phone-auth";
+import { type PhoneAuthActions, usePhoneAuthFlow } from "./use-phone-auth";
 
 export function PhoneAuth() {
 	return (
@@ -15,37 +14,25 @@ export function PhoneAuth() {
 }
 
 export function PhoneAuthContent(actions: PhoneAuthActions) {
-	const [phone, setPhone] = useState<string | null>(null);
-	const [message, setMessage] = useState<string | null>(null);
+	const flow = usePhoneAuthFlow();
 	return (
-		<div className="flex flex-col gap-6">
-			{phone === null ? (
+		<div ref={flow.stepRef} className="flex min-w-0 flex-col gap-4">
+			{flow.phone === null ? (
 				<PhoneNumberForm
 					sendOtp={actions.sendOtp}
-					onMessage={setMessage}
-					onOtpSent={(value) => {
-						setPhone(value);
-						setMessage(
-							"SMS requested. Check your phone for your sign-in code.",
-						);
-					}}
+					feedback={flow.feedback}
+					onMessage={flow.onMessage}
+					onOtpSent={flow.onOtpSent}
 				/>
 			) : (
 				<OtpForm
 					{...actions}
-					phoneNumber={phone}
-					onMessage={setMessage}
-					onBack={() => {
-						setPhone(null);
-						setMessage(null);
-					}}
+					phoneNumber={flow.phone}
+					feedback={flow.feedback}
+					onMessage={flow.onMessage}
+					onBack={flow.onBack}
 				/>
 			)}
-			{message ? (
-				<output className="text-sm text-muted-foreground" aria-live="polite">
-					{message}
-				</output>
-			) : null}
 		</div>
 	);
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import z from "zod";
 import { useAppForm } from "~/components/form";
 import {
@@ -13,7 +13,14 @@ export type PhoneAuthActions = {
 	verifyOtp: (input: { phoneNumber: string; code: string }) => Promise<Result>;
 	onSignedIn: () => void;
 };
-export type FormFeedback = { onMessage: (message: string | null) => void };
+export type AuthFeedbackValue = {
+	kind: "error" | "status";
+	text: string;
+};
+export type FormFeedback = {
+	feedback: AuthFeedbackValue | null;
+	onMessage: (message: string | null, kind?: AuthFeedbackValue["kind"]) => void;
+};
 const phoneSchema = z.object({
 	phoneNumber: z
 		.string()
@@ -77,7 +84,7 @@ export function useOtpForm({
 				const result = await verifyOtp({ phoneNumber, code: value.code });
 				if (result.error) return onMessage(getPublicErrorMessage(result.error));
 				if (!signedIn(result.data)) return onMessage(GENERIC_ERROR_MESSAGE);
-				onMessage("Phone number verified. You are signed in.");
+				onMessage("Phone number verified. You are signed in.", "status");
 				onSignedIn();
 			} catch (error) {
 				onMessage(getPublicErrorMessage(error));
@@ -98,6 +105,7 @@ export function useOtpForm({
 			form.reset();
 			onMessage(
 				"SMS requested. Check your phone; resends may contain the same code.",
+				"status",
 			);
 		} catch (error) {
 			onMessage(getPublicErrorMessage(error));
@@ -107,6 +115,36 @@ export function useOtpForm({
 		}
 	}
 	return { form, isResending, handleResend };
+}
+
+export function usePhoneAuthFlow() {
+	const [phone, setPhone] = useState<string | null>(null);
+	const [feedback, setFeedback] = useState<AuthFeedbackValue | null>(null);
+	const stepRef = useRef<HTMLDivElement>(null);
+	const previousPhone = useRef(phone);
+	useEffect(() => {
+		if (previousPhone.current !== phone) {
+			stepRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+			previousPhone.current = phone;
+		}
+	}, [phone]);
+	return {
+		phone,
+		feedback,
+		stepRef,
+		onMessage: (
+			text: string | null,
+			kind: AuthFeedbackValue["kind"] = "error",
+		) => setFeedback(text === null ? null : { kind, text }),
+		onOtpSent: (value: string) => {
+			setPhone(value);
+			setFeedback(null);
+		},
+		onBack: () => {
+			setPhone(null);
+			setFeedback(null);
+		},
+	};
 }
 
 function sent(data: unknown) {
